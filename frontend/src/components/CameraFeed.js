@@ -1,10 +1,12 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import DeviceCamera from './DeviceCamera';
+import { setupTensorFlowAndPoseDetection } from '../DLModels/dl-models-index';
 
 const CameraFeed = () => {
   const [devices, setDevices] = useState([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState(null);
   const [permissionStatus, setPermissionStatus] = useState('pending');
+  const [poseDetector, setPoseDetector] = useState(null);
 
   const videoConstraints = useMemo(() => ({
     width: { ideal: Math.min(1920, window.screen.width * 0.9) },
@@ -33,9 +35,18 @@ const CameraFeed = () => {
   }, [handleDevices]);
 
   useEffect(() => {
-    requestCameraPermissions();
+    const initializePoseDetection = async () => {
+      try {
+        const detector = await setupTensorFlowAndPoseDetection();
+        setPoseDetector(detector);
+      } catch (error) {
+        console.error('Failed to initialize pose detection:', error);
+      }
+    };
 
-    // Listen for device changes
+    requestCameraPermissions();
+    initializePoseDetection();
+
     const handleDeviceChange = () => {
       if (permissionStatus === 'granted') {
         navigator.mediaDevices.enumerateDevices().then(handleDevices);
@@ -43,7 +54,6 @@ const CameraFeed = () => {
     };
 
     navigator.mediaDevices.addEventListener('devicechange', handleDeviceChange);
-
     return () => {
       navigator.mediaDevices.removeEventListener('devicechange', handleDeviceChange);
     };
@@ -81,6 +91,7 @@ const CameraFeed = () => {
               key={selectedDeviceId}
               deviceId={selectedDeviceId}
               videoConstraints={videoConstraints}
+              poseDetector={poseDetector}
             />
           </div>
         </>

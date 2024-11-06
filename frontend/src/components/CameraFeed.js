@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import DeviceCamera from './DeviceCamera';
-import { setupTensorFlowAndPoseDetection } from '../DLModels/dl-models-index';
+import { setupTensorFlowAndPoseDetection } from '../DLModels/PoseDetectionMain';
 
 const CameraFeed = () => {
   const [devices, setDevices] = useState([]);

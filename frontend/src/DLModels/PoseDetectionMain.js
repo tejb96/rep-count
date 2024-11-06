@@ -1,5 +1,5 @@
-import { loadTensorFlowBackend } from './tf-setup';
-import { loadPoseDetectionModel } from './PD-model';
+import { loadTensorFlowBackend } from './TFSetup';
+import { loadPoseDetectionModel } from './PDLoad';
 
 export const setupTensorFlowAndPoseDetection = async () => {
   try {

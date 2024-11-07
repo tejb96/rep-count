@@ -1,11 +1,11 @@
 import React from 'react';
-import CameraFeed from './components/CameraFeed';
+import Detector from './components/Detector';
 
 function App() {
   return (
     <div className="App">
-      <h1>Push-up Tracker</h1>
-      <CameraFeed />
+      <h1>Workout Tracker</h1>
+      <Detector />
     </div>
   );
 }

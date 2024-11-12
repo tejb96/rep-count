@@ -43,6 +43,7 @@ const KEYPOINT_COLORS = {
     }
   
     drawKeypoints(keypoints, minConfidence = 0.3) {
+      if (!keypoints) return;
       keypoints.forEach(keypoint => {
         if (keypoint.score >= minConfidence) {
           const { x, y } = keypoint;
@@ -52,6 +53,7 @@ const KEYPOINT_COLORS = {
     }
   
     drawSkeleton(keypoints, minConfidence = 0.3) {
+      if (!keypoints) return;
       KEYPOINT_CONNECTIONS.forEach(([startPoint, endPoint]) => {
         const start = keypoints.find(kp => kp.name === startPoint);
         const end = keypoints.find(kp => kp.name === endPoint);

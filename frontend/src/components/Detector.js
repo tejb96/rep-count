@@ -94,6 +94,11 @@ const Detector = () => {
         cancelAnimationFrame(detectionRef.current);
         detectionRef.current = null;
       }
+      // Clear the canvas when stopping
+      if (canvasRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      }
     }
   };
 
@@ -121,14 +126,17 @@ const Detector = () => {
           
           if (poses.length > 0) {
             const pose = poses[0];
-            // Draw pose keypoints here if needed
-            // You can add keypoint visualization logic here
-            if (!keypointDrawer) {
-              setKeypointDrawer(new KeypointDrawer(ctx));
+            
+            // Initialize keypointDrawer if it doesn't exist
+            let currentDrawer = keypointDrawer;
+            if (!currentDrawer) {
+              currentDrawer = new KeypointDrawer(ctx);
+              setKeypointDrawer(currentDrawer);
             }
-            // Use KeypointDrawer to draw the keypoints and skeleton
-            keypointDrawer.drawKeypoints(pose.keypoints);
-            keypointDrawer.drawSkeleton(pose.keypoints);
+            
+            // Use the currentDrawer directly instead of depending on state
+            currentDrawer.drawKeypoints(pose.keypoints);
+            currentDrawer.drawSkeleton(pose.keypoints);
           }
         } catch (error) {
           console.error('Error during pose detection:', error);

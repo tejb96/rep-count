@@ -1,89 +1,59 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import Webcam from 'react-webcam';
-import { setupTensorFlowAndPoseDetection } from '../DLModels/PoseDetectionMain';
+import React, { useEffect, useRef, useState } from 'react';
+import { useCamera } from '../hooks/useCamera';
+import { usePoseDetection } from '../hooks/usePoseDetection';
+import CameraControls from './CameraControls';
+import CameraDisplay from './CameraDisplay';
 import KeypointDrawer from './KeypointsDrawer';
+import WorkoutSelector from './WorkoutSelector';
+import DeadliftTracker from '../workouts/conventionalDeadlifts/DeadliftTracker';
 
 const Detector = () => {
-  // State declarations
-  const [devices, setDevices] = useState([]);
-  const [selectedDeviceId, setSelectedDeviceId] = useState(null);
-  const [permissionStatus, setPermissionStatus] = useState('pending');
-  const [poseDetector, setPoseDetector] = useState(null);
-  const [isPoseDetectionActive, setIsPoseDetectionActive] = useState(false);
-  const [repCount, setRepCount] = useState(0);
-  const [formMessage, setFormMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [keypointDrawer, setKeypointDrawer] = useState(null);
-  
+  // Custom hooks
+  const {
+    devices,
+    selectedDeviceId,
+    setSelectedDeviceId,
+    permissionStatus,
+    requestCameraPermissions
+  } = useCamera();
+
+  const {
+    poseDetector,
+    isPoseDetectionActive,
+    setIsPoseDetectionActive,
+    isLoading,
+    initializePoseDetection
+  } = usePoseDetection();
+
+  // State
+  const [selectedWorkout, setSelectedWorkout] = useState(null);
+  const [currentPose, setCurrentPose] = useState(null);
+
   // Refs
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
-  const detectionRef = useRef(null); // To track detection loop
+  const detectionRef = useRef(null);
+  const keypointDrawerRef = useRef(null);
 
-  // Video constraints with proper initialization
-  const videoConstraints = {
-    deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined,
-    width: 640,  // Added fixed dimensions to ensure consistency
-    height: 480,
-    facingMode: "user"
+  // // Video constraints
+  // const videoConstraints = {
+  //   deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined,
+  //   width: 640,
+  //   height: 480,
+  //   facingMode: "user"
+  // };
+
+  const handleCameraSwitch = (e) => {
+    if (isPoseDetectionActive) {
+      setIsPoseDetectionActive(false);
+      if (detectionRef.current) {
+        cancelAnimationFrame(detectionRef.current);
+        detectionRef.current = null;
+      }
+    }
+    setSelectedDeviceId(e.target.value);
   };
 
-  // Handle available devices
-  const handleDevices = useCallback((mediaDevices) => {
-    const videoInputs = mediaDevices.filter(({ kind }) => kind === 'videoinput');
-    setDevices(videoInputs);
-    if (videoInputs.length > 0 && !selectedDeviceId) {
-      setSelectedDeviceId(videoInputs[0].deviceId);
-    }
-  }, [selectedDeviceId]);
-
-  // Request camera permissions
-  const requestCameraPermissions = useCallback(async () => {
-    try {
-      await navigator.mediaDevices.getUserMedia({ video: true });
-      setPermissionStatus('granted');
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      handleDevices(devices);
-    } catch (error) {
-      console.error('Permission denied or error accessing media devices:', error);
-      setPermissionStatus('denied');
-    }
-  }, [handleDevices]);
-
-  // Initialize pose detection model
-  const initializePoseDetection = useCallback(async () => {
-    if (!poseDetector) {
-      setIsLoading(true);
-      try {
-        const detector = await setupTensorFlowAndPoseDetection();
-        setPoseDetector(detector);
-      } catch (error) {
-        console.error('Failed to initialize pose detection:', error);
-        setIsPoseDetectionActive(false);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  }, [poseDetector]);
-
-  // Handle camera device changes
-  useEffect(() => {
-    const handleDeviceChange = async () => {
-      if (permissionStatus === 'granted') {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        handleDevices(devices);
-      }
-    };
-
-    navigator.mediaDevices.addEventListener('devicechange', handleDeviceChange);
-    requestCameraPermissions();
-
-    return () => {
-      navigator.mediaDevices.removeEventListener('devicechange', handleDeviceChange);
-    };
-  }, [permissionStatus, handleDevices, requestCameraPermissions]);
-
-  // Handle pose detection toggle
   const togglePoseDetection = async () => {
     if (!isPoseDetectionActive) {
       await initializePoseDetection();
@@ -99,6 +69,29 @@ const Detector = () => {
         const ctx = canvasRef.current.getContext('2d');
         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
       }
+      // Reset current pose
+      setCurrentPose(null);
+    }
+  };
+
+  const handleWorkoutSelect = (workoutId) => {
+    setSelectedWorkout(workoutId);
+    // Automatically start pose detection when workout is selected
+    // if (!isPoseDetectionActive) {
+    //   togglePoseDetection();
+    // }
+  };
+
+  // Workout tracker component selector
+  const WorkoutTracker = ({ pose }) => {
+    if (!pose) return null;
+
+    switch (selectedWorkout) {
+      case 'deadlift':
+        return <DeadliftTracker keypoints={pose.keypoints} />;
+      // Add other workout cases here
+      default:
+        return null;
     }
   };
 
@@ -127,19 +120,23 @@ const Detector = () => {
           if (poses.length > 0) {
             const pose = poses[0];
             
+            // Update current pose state
+            setCurrentPose(pose);
+            
             // Initialize keypointDrawer if it doesn't exist
-            let currentDrawer = keypointDrawer;
-            if (!currentDrawer) {
-              currentDrawer = new KeypointDrawer(ctx);
-              setKeypointDrawer(currentDrawer);
+            if (!keypointDrawerRef.current) {
+              keypointDrawerRef.current = new KeypointDrawer(ctx);
             }
             
-            // Use the currentDrawer directly instead of depending on state
-            currentDrawer.drawKeypoints(pose.keypoints);
-            currentDrawer.drawSkeleton(pose.keypoints);
+            // Draw keypoints and skeleton
+            keypointDrawerRef.current.drawKeypoints(pose.keypoints);
+            keypointDrawerRef.current.drawSkeleton(pose.keypoints);
+          } else {
+            setCurrentPose(null);
           }
         } catch (error) {
           console.error('Error during pose detection:', error);
+          setCurrentPose(null);
         }
       }
     };
@@ -163,85 +160,62 @@ const Detector = () => {
     };
   }, [isPoseDetectionActive, poseDetector]);
 
-  // Handle camera switch
-  const handleCameraSwitch = (e) => {
-    // Stop current detection if active
-    if (isPoseDetectionActive) {
-      setIsPoseDetectionActive(false);
-      if (detectionRef.current) {
-        cancelAnimationFrame(detectionRef.current);
-        detectionRef.current = null;
+  // Handle device changes
+  useEffect(() => {
+    const handleDeviceChange = async () => {
+      if (permissionStatus === 'granted') {
+        await requestCameraPermissions();
       }
-    }
-    setSelectedDeviceId(e.target.value);
-  };
+    };
+
+    navigator.mediaDevices.addEventListener('devicechange', handleDeviceChange);
+    requestCameraPermissions();
+
+    return () => {
+      navigator.mediaDevices.removeEventListener('devicechange', handleDeviceChange);
+    };
+  }, [permissionStatus, requestCameraPermissions]);
 
   if (permissionStatus === 'pending') {
-    return <p>Requesting camera permission...</p>;
+    return <div className="flex items-center justify-center h-screen">
+      <p className="text-lg">Requesting camera permission...</p>
+    </div>;
   }
 
   if (permissionStatus === 'denied') {
-    return <p>Camera permission denied. Please grant permission and reload the page.</p>;
+    return <div className="flex items-center justify-center h-screen">
+      <p className="text-lg">Camera permission denied. Please grant permission and reload the page.</p>
+    </div>;
+  }
+
+  if (!selectedWorkout) {
+    return <WorkoutSelector onSelectWorkout={handleWorkoutSelect} />;
   }
 
   return (
-    <div className="camera-feed">
+    <div className="relative">
       {devices.length > 0 ? (
         <>
-          <div className="controls flex gap-4 mb-4">
-            <select
-              onChange={handleCameraSwitch}
-              value={selectedDeviceId || ''}
-              aria-label="Select camera"
-              className="p-2 border rounded"
-              disabled={isPoseDetectionActive}
-            >
-              {devices.map((device) => (
-                <option key={device.deviceId} value={device.deviceId}>
-                  {device.label || `Camera ${device.deviceId.slice(0, 5)}`}
-                </option>
-              ))}
-            </select>
-            <button
-              onClick={togglePoseDetection}
-              disabled={isLoading}
-              className={`px-4 py-2 rounded ${
-                isPoseDetectionActive
-                  ? 'bg-red-500 hover:bg-red-600'
-                  : 'bg-green-500 hover:bg-green-600'
-              } text-white transition-colors ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              {isLoading ? 'Loading...' : isPoseDetectionActive ? 'Stop Pose Detection' : 'Start Pose Detection'}
-            </button>
-          </div>
-          <div className="camera-display" style={{ position: 'relative', width: '100%', height: '100vh' }}>
-            <Webcam
-              key={selectedDeviceId}
-              audio={false}
-              ref={webcamRef}
-              videoConstraints={videoConstraints}
-              style={{
-                position: 'absolute',
-                zIndex: 1,
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-              }}
-              aria-label={`Camera feed ${selectedDeviceId ? selectedDeviceId.slice(0, 5) : ''}`}
-            />
-            <canvas
-              ref={canvasRef}
-              style={{
-                position: 'absolute',
-                zIndex: 2,
-                width: '100%',
-                height: '100%',
-              }}
-            />
-          </div>
+          <CameraControls
+            devices={devices}
+            selectedDeviceId={selectedDeviceId}
+            onCameraSwitch={handleCameraSwitch}
+            onTogglePoseDetection={togglePoseDetection}
+            isPoseDetectionActive={isPoseDetectionActive}
+            isLoading={isLoading}
+          />
+          <CameraDisplay
+            webcamRef={webcamRef}
+            canvasRef={canvasRef}
+            // videoConstraints={videoConstraints}
+            selectedDeviceId={selectedDeviceId}
+          />
+          <WorkoutTracker pose={currentPose} />
         </>
       ) : (
-        <p>No video devices found.</p>
+        <div className="flex items-center justify-center h-screen">
+          <p className="text-lg">No video devices found.</p>
+        </div>
       )}
     </div>
   );

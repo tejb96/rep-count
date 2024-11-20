@@ -1,4 +1,6 @@
 import React from 'react';
+import { useDispatch } from 'react-redux';
+import { resetRepCount } from '../store/workoutSlice';
 import { 
   Box, 
   Card, 
@@ -16,6 +18,20 @@ const workouts = [
     description: 'Track form and count reps for conventional deadlifts',
     icon: <FitnessCenterIcon sx={{ fontSize: 40 }} />,
   },
+
+  {
+    id: 'PushUps',
+    name: 'Push Ups',
+    description: 'Count reps for push ups',
+    icon: <FitnessCenterIcon sx={{ fontSize: 40 }} />,
+  },
+
+  {
+    id: 'SitUps',
+    name: 'Sit Ups',
+    description: 'Count reps for sit ups',
+    icon: <FitnessCenterIcon sx={{ fontSize: 40 }} />,
+  },
   // Add more workouts here as you develop them
   // {
   //   id: 'squat',
@@ -26,6 +42,13 @@ const workouts = [
 ];
 
 const WorkoutSelector = ({ onSelectWorkout }) => {
+  const dispatch = useDispatch();
+
+  const handleWorkoutSelect = (workout) => {
+    dispatch(resetRepCount());
+    onSelectWorkout(workout);
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
@@ -44,7 +67,7 @@ const WorkoutSelector = ({ onSelectWorkout }) => {
               }}
             >
               <CardActionArea 
-                onClick={() => onSelectWorkout(workout.id)}
+                onClick={() => handleWorkoutSelect(workout)}
                 sx={{ height: '100%' }}
               >
                 <CardContent>

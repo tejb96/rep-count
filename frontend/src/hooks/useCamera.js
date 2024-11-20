@@ -1,36 +1,33 @@
-import { useState, useCallback } from 'react';
+// src/hooks/useCamera.js
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { requestCameraPermissions, setSelectedDeviceId } from '../store/cameraSlice';
+
 
 export const useCamera = () => {
-  const [devices, setDevices] = useState([]);
-  const [selectedDeviceId, setSelectedDeviceId] = useState(null);
-  const [permissionStatus, setPermissionStatus] = useState('pending');
+  const dispatch = useDispatch();
+  
+  // Get camera state from Redux
+  const { 
+    devices, 
+    selectedDeviceId, 
+    permissionStatus 
+  } = useSelector(state => state.camera);
 
-  const handleDevices = useCallback((mediaDevices) => {
-    const videoInputs = mediaDevices.filter(({ kind }) => kind === 'videoinput');
-    setDevices(videoInputs);
-    if (videoInputs.length > 0 && !selectedDeviceId) {
-      setSelectedDeviceId(videoInputs[0].deviceId);
+  // Request camera permissions on initial mount if pending
+  useEffect(() => {
+    if (permissionStatus === 'pending') {
+      dispatch(requestCameraPermissions());
     }
-  }, [selectedDeviceId]);
+  }, [dispatch, permissionStatus]);
 
-  const requestCameraPermissions = useCallback(async () => {
-    try {
-      await navigator.mediaDevices.getUserMedia({ video: true });
-      setPermissionStatus('granted');
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      handleDevices(devices);
-    } catch (error) {
-      console.error('Permission denied or error accessing media devices:', error);
-      setPermissionStatus('denied');
-    }
-  }, [handleDevices]);
-
+  // Return the same API as before, but now using Redux
   return {
     devices,
     selectedDeviceId,
-    setSelectedDeviceId,
+    setSelectedDeviceId: (deviceId) => dispatch(setSelectedDeviceId(deviceId)),
     permissionStatus,
-    handleDevices,
-    requestCameraPermissions
+    // No need for handleDevices as it's handled in the thunk now
+    requestCameraPermissions: () => dispatch(requestCameraPermissions())
   };
 };

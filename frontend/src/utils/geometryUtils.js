@@ -12,4 +12,13 @@ export const getSlope = (point1, point2) => {
     const ALIGNMENT_THRESHOLD = 0.01; // You can adjust this value as needed
     return Math.abs(slope1 - slope2) < ALIGNMENT_THRESHOLD;
   };
+
+  export const calculateAngle = (pointA, pointB, pointC) => {
+    const angle =
+      (Math.atan2(pointC.y - pointB.y, pointC.x - pointB.x) -
+        Math.atan2(pointA.y - pointB.y, pointA.x - pointB.x)) *
+      (180 / Math.PI);
+    return Math.abs(angle > 180 ? 360 - angle : angle);
+  };
+  
   

@@ -1,31 +1,31 @@
-import { useState, useCallback } from 'react';
-import { setupTensorFlowAndPoseDetection } from '../DLModels/PoseDetectionMain';
+// src/hooks/usePoseDetection.js
+import { useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { 
+  initializePoseDetection, 
+  setPoseDetectionActive 
+} from '../store/poseSlice';
 
 export const usePoseDetection = () => {
-  const [poseDetector, setPoseDetector] = useState(null);
-  const [isPoseDetectionActive, setIsPoseDetectionActive] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch();
+  
+  // Get pose detection state from Redux
+  const { 
+    poseDetector, 
+    isPoseDetectionActive, 
+    isLoading 
+  } = useSelector(state => state.pose);
 
-  const initializePoseDetection = useCallback(async () => {
-    if (!poseDetector) {
-      setIsLoading(true);
-      try {
-        const detector = await setupTensorFlowAndPoseDetection();
-        setPoseDetector(detector);
-      } catch (error) {
-        console.error('Failed to initialize pose detection:', error);
-        setIsPoseDetectionActive(false);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  }, [poseDetector]);
+  const initializePoseDetectionHandler = useCallback(async () => {
+    await dispatch(initializePoseDetection());
+  }, [dispatch]);
 
+  // Return the same API as before, but now using Redux
   return {
     poseDetector,
     isPoseDetectionActive,
-    setIsPoseDetectionActive,
+    setIsPoseDetectionActive: (active) => dispatch(setPoseDetectionActive(active)),
     isLoading,
-    initializePoseDetection
+    initializePoseDetection: initializePoseDetectionHandler
   };
 };

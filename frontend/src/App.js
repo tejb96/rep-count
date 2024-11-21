@@ -1,12 +1,16 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import WorkoutSelector from './components/WorkoutSelector';
 import Detector from './components/Detector';
 
 function App() {
   return (
-    <div className="App">
-      {/* <h1>Workout Tracker</h1> */}
-      <Detector />
-    </div>
+  <Router>
+    <Routes>
+      <Route path="/" element={<WorkoutSelector />} />
+      <Route path="/detector" element={<Detector />} />
+    </Routes>
+  </Router>
   );
 }
 

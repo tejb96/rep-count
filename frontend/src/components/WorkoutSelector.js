@@ -1,52 +1,51 @@
 import React from 'react';
-import { useDispatch } from 'react-redux';
-import { resetRepCount } from '../store/workoutSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { resetRepCount, setSelectedWorkout, setLoading } from '../store/workoutSlice';
 import { 
   Box, 
   Card, 
   CardContent, 
   Typography, 
-  Grid,
+  Grid2 as Grid,
   CardActionArea
 } from '@mui/material';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
+import { useNavigate } from 'react-router-dom';
 
-const workouts = [
-  {
-    id: 'deadlift',
-    name: 'Conventional Deadlift',
-    description: 'Track form and count reps for conventional deadlifts',
-    icon: <FitnessCenterIcon sx={{ fontSize: 40 }} />,
-  },
 
-  {
-    id: 'PushUps',
-    name: 'Push Ups',
-    description: 'Count reps for push ups',
-    icon: <FitnessCenterIcon sx={{ fontSize: 40 }} />,
-  },
+const WorkoutSelector = () => {
 
-  {
-    id: 'SitUps',
-    name: 'Sit Ups',
-    description: 'Count reps for sit ups',
-    icon: <FitnessCenterIcon sx={{ fontSize: 40 }} />,
-  },
-  // Add more workouts here as you develop them
-  // {
-  //   id: 'squat',
-  //   name: 'Squats',
-  //   description: 'Track form and count reps for squats',
-  //   icon: <FitnessCenterIcon sx={{ fontSize: 40 }} />,
-  // },
-];
-
-const WorkoutSelector = ({ onSelectWorkout }) => {
+  const workouts = [
+    {
+      id: 'deadlift',
+      name: 'Conventional Deadlift',
+      description: 'Track form and count reps for conventional deadlifts',
+      icon: <FitnessCenterIcon sx={{ fontSize: 40 }} />,
+    },
+    {
+      id: 'PushUps',
+      name: 'Push Ups',
+      description: 'Count reps for push ups',
+      icon: <FitnessCenterIcon sx={{ fontSize: 40 }} />,
+    },
+    {
+      id: 'SitUps',
+      name: 'Sit Ups',
+      description: 'Count reps for sit ups',
+      icon: <FitnessCenterIcon sx={{ fontSize: 40 }} />,
+    },
+    // Add more workouts here as you develop them
+  ];
+  const navigate = useNavigate();
   const dispatch = useDispatch();
+  const state = useSelector((state) => state.workout);
+  console.log(state);
 
   const handleWorkoutSelect = (workout) => {
+    dispatch(setLoading(true));
     dispatch(resetRepCount());
-    onSelectWorkout(workout);
+    dispatch(setSelectedWorkout({ id: workout.id, name: workout.name }));
+    navigate('/detector'); 
   };
 
   return (

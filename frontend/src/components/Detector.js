@@ -1,33 +1,45 @@
 import React, { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Typography } from '@mui/material';
-import CameraDisplay from './CameraDisplay';
-import WorkoutSelector from './WorkoutSelector';
+import { Box, Button, FormControl, Select, MenuItem, Typography } from '@mui/material';
+import Webcam from 'react-webcam';
 import DeadliftTracker from '../workouts/conventionalDeadlifts/DeadliftTracker';
 import PushUpTracker from '../workouts/pushups/PushupsTracker';
 import SitUpTracker from '../workouts/SitUps/SitUpTracker';
-import { useCamera } from '../hooks/useCamera';
-import { usePoseDetection } from '../hooks/usePoseDetection';
 import { 
-  setSelectedWorkout, 
-  updatePoses, 
-  setCurrentPose,
-  resetRepCount 
+  resetRepCount, 
+  resetSelectedWorkout
 } from '../store/workoutSlice';
-import { setPoseDetectionActive } from '../store/poseSlice';
+import { 
+  requestCameraPermissions,
+  setSelectedDeviceId
+} from '../store/cameraSlice';
 import KeypointDrawer from './KeypointsDrawer';
+import { usePoseDetection } from '../hooks/usePoseDetection';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Detector = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
   
   // Redux state
-  const { devices, permissionStatus } = useSelector(state => state.camera);
-  const { isPoseDetectionActive, poseDetector } = useSelector(state => state.pose);
-  const { selectedWorkout, currentPose } = useSelector(state => state.workout);
+  const { devices, permissionStatus, error: cameraError, selectedDeviceId } = 
+    useSelector(state => state.camera);
+  const { workoutId, workoutName, repCount } = 
+    useSelector(state => state.workout);
 
-  // Custom hooks (now using Redux internally)
-  const { requestCameraPermissions } = useCamera();
-  const { initializePoseDetection } = usePoseDetection();
+  // Use pose detection hook
+  const { 
+    poseDetector,
+    isPoseDetectionActive,
+    setIsPoseDetectionActive,
+    isLoading,
+    resumeDetection,
+    pauseDetection,
+    updateKeypoints,
+    error,
+    cleanup
+  } = usePoseDetection();
 
   // Refs
   const webcamRef = useRef(null);
@@ -35,59 +47,103 @@ const Detector = () => {
   const detectionRef = useRef(null);
   const keypointDrawerRef = useRef(null);
 
-  const togglePoseDetection = async () => {
-    if (!isPoseDetectionActive) {
-      await initializePoseDetection();
-      dispatch(setPoseDetectionActive(true));
-    } else {
-      dispatch(setPoseDetectionActive(false));
-      if (detectionRef.current) {
-        cancelAnimationFrame(detectionRef.current);
-        detectionRef.current = null;
+  // Initialize camera on mount
+  useEffect(() => {
+    dispatch(requestCameraPermissions());
+  }, [dispatch]);
+
+  // Handle device changes
+  useEffect(() => {
+    const handleDeviceChange = async () => {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoInputs = devices.filter(device => device.kind === 'videoinput');
+      dispatch({ type: 'camera/updateDevices', payload: videoInputs });
+    };
+
+    navigator.mediaDevices.addEventListener('devicechange', handleDeviceChange);
+    return () => {
+      navigator.mediaDevices.removeEventListener('devicechange', handleDeviceChange);
+    };
+  }, [dispatch]);
+
+  const handleCameraSwitch = async (event) => {
+    try {
+      const newDeviceId = event.target.value;
+      
+      // If pose detection is active, pause it before switching
+      if (isPoseDetectionActive) {
+        pauseDetection();
+        if (detectionRef.current) {
+          cancelAnimationFrame(detectionRef.current);
+          detectionRef.current = null;
+        }
       }
-      // Clear the canvas when stopping
-      if (canvasRef.current) {
-        const ctx = canvasRef.current.getContext('2d');
-        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      
+      // Switch camera device
+      dispatch(setSelectedDeviceId(newDeviceId));
+      
+      // Wait for video element to update with new device
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Cleanup and reinitialize with new camera
+      cleanup(); // Need to reinitialize with new camera
+      await resumeDetection();
+      
+      // Restart pose detection if it was active
+      if (isPoseDetectionActive) {
+        await resumeDetection();
       }
-      // Reset current pose and rep count
-      dispatch(setCurrentPose(null));
-      dispatch(resetRepCount());
+    } catch (error) {
+      console.error('Error switching camera:', error);
     }
   };
 
-  const handleWorkoutSelect = (workoutId, workoutName) => {
-    dispatch(setSelectedWorkout({
-      id: workoutId,
-      name: workoutName
-    }));
-  };
-
-  // Workout tracker component selector
-  const WorkoutTracker = () => {
-    switch (selectedWorkout?.id) {
-      case 'deadlift':
-        return <DeadliftTracker />;
-      case 'PushUps':
-        return <PushUpTracker />;
-      case 'SitUps':
-        return <SitUpTracker />;
-      default:
-        return null;
+  const togglePoseDetection = async () => {
+    try {
+      if (!isPoseDetectionActive) {
+        // If not initialized, this will initialize. If already initialized, it will just resume
+        await resumeDetection();
+      } else {
+        // This just pauses detection without disposing of the model
+        pauseDetection();
+        if (detectionRef.current) {
+          cancelAnimationFrame(detectionRef.current);
+          detectionRef.current = null;
+        }
+        if (canvasRef.current) {
+          const ctx = canvasRef.current.getContext('2d');
+          ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling pose detection:', error);
+      pauseDetection();
     }
   };
 
   const reselectWorkout = () => {
-    dispatch(setSelectedWorkout(null));
-    resetRepCount();
+    dispatch(resetSelectedWorkout());
+    dispatch(resetRepCount());
     if (isPoseDetectionActive) {
-      dispatch(setPoseDetectionActive(false));
+      pauseDetection();
       if (detectionRef.current) {
         cancelAnimationFrame(detectionRef.current);
         detectionRef.current = null;
       }
     }
+    navigate('/');
   };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (detectionRef.current) {
+        cancelAnimationFrame(detectionRef.current);
+        detectionRef.current = null;
+      }
+      cleanup();
+    };
+  }, [cleanup]);
 
   // Main pose detection loop
   useEffect(() => {
@@ -95,7 +151,8 @@ const Detector = () => {
       if (
         webcamRef.current?.video?.readyState === 4 &&
         poseDetector &&
-        canvasRef.current
+        canvasRef.current &&
+        isPoseDetectionActive
       ) {
         const video = webcamRef.current.video;
         const canvas = canvasRef.current;
@@ -110,8 +167,7 @@ const Detector = () => {
           
           if (poses.length > 0) {
             const pose = poses[0];
-            dispatch(setCurrentPose(pose));
-            dispatch(updatePoses(poses));
+            updateKeypoints(pose.keypoints);
             
             if (!keypointDrawerRef.current) {
               keypointDrawerRef.current = new KeypointDrawer(ctx);
@@ -119,12 +175,10 @@ const Detector = () => {
             
             keypointDrawerRef.current.drawKeypoints(pose.keypoints);
             keypointDrawerRef.current.drawSkeleton(pose.keypoints);
-          } else {
-            dispatch(setCurrentPose(null));
           }
         } catch (error) {
           console.error('Error during pose detection:', error);
-          dispatch(setCurrentPose(null));
+          setIsPoseDetectionActive(false);
         }
       }
     };
@@ -146,24 +200,27 @@ const Detector = () => {
         detectionRef.current = null;
       }
     };
-  }, [isPoseDetectionActive, poseDetector, dispatch]);
+  }, [isPoseDetectionActive, poseDetector, updateKeypoints]);
 
-  // Handle device changes
-  useEffect(() => {
-    const handleDeviceChange = async () => {
-      if (permissionStatus === 'granted') {
-        await requestCameraPermissions();
-      }
-    };
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-lg">Initializing camera...</p>
+      </div>
+    );
+  }
 
-    navigator.mediaDevices.addEventListener('devicechange', handleDeviceChange);
-    requestCameraPermissions();
+  // Error state
+  if (error || cameraError) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-lg text-red-500">{error || cameraError}</p>
+      </div>
+    );
+  }
 
-    return () => {
-      navigator.mediaDevices.removeEventListener('devicechange', handleDeviceChange);
-    };
-  }, [permissionStatus, requestCameraPermissions]);
-
+  // Permission states
   if (permissionStatus === 'pending') {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -175,13 +232,11 @@ const Detector = () => {
   if (permissionStatus === 'denied') {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p className="text-lg">Camera permission denied. Please grant permission and reload the page.</p>
+        <p className="text-lg">
+          Camera permission denied. Please grant permission and reload the page.
+        </p>
       </div>
     );
-  }
-
-  if (!selectedWorkout) {
-    return <WorkoutSelector onSelectWorkout={handleWorkoutSelect} />;
   }
 
   return (
@@ -192,24 +247,137 @@ const Detector = () => {
         gutterBottom 
         sx={{ fontWeight: 'bold', mb: 3 }}
       >
-        {selectedWorkout.name}
+        {workoutName}
       </Typography>
       {devices.length > 0 ? (
-        <>
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-            <CameraDisplay
-              webcamRef={webcamRef}
-              canvasRef={canvasRef}
-              onTogglePoseDetection={togglePoseDetection}
-              isPoseDetectionActive={isPoseDetectionActive}
-              onBack={reselectWorkout}
-              repCount={currentPose?.repCount || 0}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+          <Box 
+            sx={{ 
+              position: 'relative',
+              width: '100%',
+              maxWidth: '1000px',
+              height: { xs: '480px', sm: '600px', md: '720px' },
+              margin: '0 auto',
+              aspectRatio: '4/3'
+            }}
+          >
+            {/* Camera Feed */}
+            <Webcam
+              ref={webcamRef}
+              videoConstraints={{
+                deviceId: selectedDeviceId,
+                aspectRatio: 4/3,
+                facingMode: "user"
+              }}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                borderRadius: '8px'
+              }}
             />
+
+            {/* Pose Detection Canvas */}
+            <canvas
+              ref={canvasRef}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                zIndex: 2
+              }}
+            />
+
+            {/* Controls Overlay */}
+            <Box 
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                padding: 2,
+                display: 'flex',
+                justifyContent: 'space-between',
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%)',
+                zIndex: 3
+              }}
+            >
+              {/* Camera Selection Dropdown */}
+              <FormControl 
+                size="small" 
+                sx={{ 
+                  width: '150px',
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  borderRadius: 1
+                }}
+              >
+                <Select
+                  value={selectedDeviceId || ''}
+                  onChange={handleCameraSwitch}
+                  disabled={isPoseDetectionActive}
+                  sx={{ 
+                    color: 'white',
+                    '.MuiSelect-icon': { color: 'white' }
+                  }}
+                >
+                  {devices.map((device) => (
+                    <MenuItem key={device.deviceId} value={device.deviceId}>
+                      {device.label || `Camera ${device.deviceId.slice(0, 5)}`}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {/* Control Buttons */}
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button
+                  variant="contained"
+                  onClick={togglePoseDetection}
+                  disabled={isLoading}
+                  color={isPoseDetectionActive ? "error" : "success"}
+                  size="small"
+                >
+                  {isLoading ? 'Loading...' : isPoseDetectionActive ? 'Stop' : 'Start'}
+                </Button>
+                <Button 
+                  variant="contained"
+                  onClick={reselectWorkout}
+                  color="primary"
+                  size="small"
+                >
+                  Back
+                </Button>
+              </Box>
+            </Box>
+
+            {/* Rep Counter Overlay */}
+            <Box 
+              sx={{
+                position: 'absolute',
+                bottom: 20,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                padding: '10px 20px',
+                borderRadius: '20px',
+                backgroundColor: 'rgba(0,0,0,0.7)',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                zIndex: 3
+              }}
+            >
+              <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                {repCount}
+              </Typography>
+              <Typography variant="body1">
+                reps
+              </Typography>
+            </Box>
           </Box>
-          <Box sx={{ maxWidth: 800, mx: 'auto' }}>
-            <WorkoutTracker />
-          </Box>
-        </>
+        </Box>
       ) : (
         <Box sx={{ 
           display: 'flex', 

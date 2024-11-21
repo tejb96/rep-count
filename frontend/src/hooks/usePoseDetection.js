@@ -1,31 +1,78 @@
-// src/hooks/usePoseDetection.js
-import { useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { 
-  initializePoseDetection, 
-  setPoseDetectionActive 
-} from '../store/poseSlice';
+import { useState, useCallback, useRef } from 'react';
+import { setupPoseDetection } from '../utils/PoseDetectionTensorflow';
 
 export const usePoseDetection = () => {
-  const dispatch = useDispatch();
+  const [poseDetector, setPoseDetector] = useState(null);
+  const [isPoseDetectionActive, setIsPoseDetectionActive] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [keypoints, setKeypoints] = useState([]);
+  const [error, setError] = useState(null);
   
-  // Get pose detection state from Redux
-  const { 
-    poseDetector, 
-    isPoseDetectionActive, 
-    isLoading 
-  } = useSelector(state => state.pose);
+  // Use ref to track initialization state to avoid unnecessary reinits
+  const isInitialized = useRef(false);
 
-  const initializePoseDetectionHandler = useCallback(async () => {
-    await dispatch(initializePoseDetection());
-  }, [dispatch]);
+  const initializePoseDetection = useCallback(async () => {
+    // If already initialized, just return
+    if (isInitialized.current && poseDetector) {
+      return;
+    }
 
-  // Return the same API as before, but now using Redux
+    setIsLoading(true);
+    try {
+      const detector = await setupPoseDetection();
+      setPoseDetector(detector);
+      isInitialized.current = true;
+      setError(null);
+    } catch (error) {
+      console.error('Failed to initialize pose detection:', error);
+      setIsPoseDetectionActive(false);
+      setPoseDetector(null);
+      isInitialized.current = false;
+      setError(error.message);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [poseDetector]);
+
+  const pauseDetection = useCallback(() => {
+    setIsPoseDetectionActive(false);
+    setKeypoints([]);
+  }, []);
+
+  const resumeDetection = useCallback(async () => {
+    if (!isInitialized.current) {
+      await initializePoseDetection();
+    }
+    setIsPoseDetectionActive(true);
+  }, [initializePoseDetection]);
+
+  const cleanup = useCallback(() => {
+    if (poseDetector) {
+      poseDetector.dispose();
+      setPoseDetector(null);
+      setKeypoints([]);
+      setError(null);
+      isInitialized.current = false;
+    }
+  }, [poseDetector]);
+
+  const updateKeypoints = useCallback((newKeypoints) => {
+    setKeypoints(newKeypoints);
+  }, []);
+
   return {
     poseDetector,
     isPoseDetectionActive,
-    setIsPoseDetectionActive: (active) => dispatch(setPoseDetectionActive(active)),
+    setIsPoseDetectionActive,
     isLoading,
-    initializePoseDetection: initializePoseDetectionHandler
+    initializePoseDetection,
+    pauseDetection,
+    resumeDetection,
+    keypoints,
+    updateKeypoints,
+    error,
+    setError,
+    cleanup
   };
 };

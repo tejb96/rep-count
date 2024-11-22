@@ -25,7 +25,7 @@ const Detector = () => {
   // Redux state
   const { devices, permissionStatus, error: cameraError, selectedDeviceId } = 
     useSelector(state => state.camera);
-  const { selectedWorkoutID, selectedWorkoutName, repCount } = 
+  const { selectedWorkoutName, repCount } = 
     useSelector(state => state.workout);
   console.log(selectedWorkoutName);
   // Use pose detection hook
@@ -65,6 +65,20 @@ const Detector = () => {
       navigator.mediaDevices.removeEventListener('devicechange', handleDeviceChange);
     };
   }, [dispatch]);
+
+  // Render appropriate tracker based on selected workout
+  const renderWorkoutTracker = () => {
+    switch(selectedWorkoutName) {
+      case 'Deadlifts':
+        return <DeadliftTracker />;
+      case 'Push Ups':
+        return <PushUpTracker />;
+      case 'Sit Ups':
+        return <SitUpTracker />;
+      default:
+        return null;
+    }
+  };
 
   const handleCameraSwitch = async (event) => {
     try {

@@ -2,9 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box, Button, FormControl, Select, MenuItem, Typography } from '@mui/material';
 import Webcam from 'react-webcam';
-import DeadliftTracker from '../workouts/conventionalDeadlifts/DeadliftTracker';
-import PushUpTracker from '../workouts/pushups/PushupsTracker';
-import SitUpTracker from '../workouts/SitUps/SitUpTracker';
 import { 
   resetRepCount, 
   resetSelectedWorkout
@@ -65,20 +62,6 @@ const Detector = () => {
       navigator.mediaDevices.removeEventListener('devicechange', handleDeviceChange);
     };
   }, [dispatch]);
-
-  // Render appropriate tracker based on selected workout
-  const renderWorkoutTracker = () => {
-    switch(selectedWorkoutName) {
-      case 'Deadlifts':
-        return <DeadliftTracker />;
-      case 'Push Ups':
-        return <PushUpTracker />;
-      case 'Sit Ups':
-        return <SitUpTracker />;
-      default:
-        return null;
-    }
-  };
 
   const handleCameraSwitch = async (event) => {
     try {
@@ -159,62 +142,61 @@ const Detector = () => {
     };
   }, [cleanup]);
 
-  // Main pose detection loop
-  useEffect(() => {
-    const detectPose = async () => {
-      if (
-        webcamRef.current?.video?.readyState === 4 &&
-        poseDetector &&
-        canvasRef.current &&
-        isPoseDetectionActive
-      ) {
-        const video = webcamRef.current.video;
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
+ // Main pose detection loop
+ useEffect(() => {
+  const detectPose = async () => {
+    if (
+      webcamRef.current?.video?.readyState === 4 &&
+      poseDetector &&
+      canvasRef.current &&
+      isPoseDetectionActive
+    ) {
+      const video = webcamRef.current.video;
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
 
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
 
-        try {
-          const poses = await poseDetector.estimatePoses(video);
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          
-          if (poses.length > 0) {
-            const pose = poses[0];
-            updateKeypoints(pose.keypoints);
-            
-            if (!keypointDrawerRef.current) {
-              keypointDrawerRef.current = new KeypointDrawer(ctx);
-            }
-            
-            keypointDrawerRef.current.drawKeypoints(pose.keypoints);
-            keypointDrawerRef.current.drawSkeleton(pose.keypoints);
+      try {
+        const poses = await poseDetector.estimatePoses(video);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        if (poses.length > 0) {
+          const pose = poses[0];
+          updateKeypoints(pose.keypoints);
+          if (!keypointDrawerRef.current) {
+            keypointDrawerRef.current = new KeypointDrawer(ctx);
           }
-        } catch (error) {
-          console.error('Error during pose detection:', error);
-          setIsPoseDetectionActive(false);
+          
+          keypointDrawerRef.current.drawKeypoints(pose.keypoints);
+          keypointDrawerRef.current.drawSkeleton(pose.keypoints);
         }
+      } catch (error) {
+        console.error('Error during pose detection:', error);
+        setIsPoseDetectionActive(false);
       }
-    };
-
-    const runDetection = async () => {
-      if (isPoseDetectionActive && poseDetector) {
-        await detectPose();
-        detectionRef.current = requestAnimationFrame(runDetection);
-      }
-    };
-
-    if (isPoseDetectionActive && poseDetector) {
-      runDetection();
     }
+  };
 
-    return () => {
-      if (detectionRef.current) {
-        cancelAnimationFrame(detectionRef.current);
-        detectionRef.current = null;
-      }
-    };
-  }, [isPoseDetectionActive, poseDetector, updateKeypoints]);
+  const runDetection = async () => {
+    if (isPoseDetectionActive && poseDetector) {
+      await detectPose();
+      detectionRef.current = requestAnimationFrame(runDetection);
+    }
+  };
+
+  if (isPoseDetectionActive && poseDetector) {
+    runDetection();
+  }
+
+  return () => {
+    if (detectionRef.current) {
+      cancelAnimationFrame(detectionRef.current);
+      detectionRef.current = null;
+    }
+  };
+}, [isPoseDetectionActive, poseDetector, updateKeypoints]);
 
    // Error state
    if (error || cameraError) {

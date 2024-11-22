@@ -1,20 +1,19 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { resetRepCount, setSelectedWorkout, setLoading } from '../store/workoutSlice';
+import { resetRepCount, selectWorkoutAsync } from '../store/workoutSlice';
 import { 
   Box, 
   Card, 
   CardContent, 
   Typography, 
   Grid2 as Grid,
-  CardActionArea
+  CardActionArea,
+  CircularProgress
 } from '@mui/material';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import { useNavigate } from 'react-router-dom';
 
-
 const WorkoutSelector = () => {
-
   const workouts = [
     {
       id: 'deadlift',
@@ -34,19 +33,49 @@ const WorkoutSelector = () => {
       description: 'Count reps for sit ups',
       icon: <FitnessCenterIcon sx={{ fontSize: 40 }} />,
     },
-    // Add more workouts here as you develop them
   ];
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const state = useSelector((state) => state.workout);
-  console.log(state);
+  const { status, error } = useSelector((state) => state.workout);
 
-  const handleWorkoutSelect = (workout) => {
-    dispatch(setLoading(true));
+  React.useEffect(() => {
+    if (status === 'succeeded') {
+      navigate('/detector');
+    }
+  }, [status, navigate]);
+
+  const handleWorkoutSelect = async (workout) => {
     dispatch(resetRepCount());
-    dispatch(setSelectedWorkout({ id: workout.id, name: workout.name }));
-    navigate('/detector'); 
+    try {
+      await dispatch(selectWorkoutAsync(workout)).unwrap();
+    } catch (err) {
+      console.error('Failed to select workout:', err);
+    }
   };
+
+  if (status === 'loading') {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh' 
+      }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography color="error" variant="h6">
+          Error: {error}
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: 3 }}>
@@ -68,6 +97,7 @@ const WorkoutSelector = () => {
               <CardActionArea 
                 onClick={() => handleWorkoutSelect(workout)}
                 sx={{ height: '100%' }}
+                disabled={status === 'loading'}
               >
                 <CardContent>
                   <Box 

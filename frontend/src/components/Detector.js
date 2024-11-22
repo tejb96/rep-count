@@ -25,9 +25,9 @@ const Detector = () => {
   // Redux state
   const { devices, permissionStatus, error: cameraError, selectedDeviceId } = 
     useSelector(state => state.camera);
-  const { workoutId, workoutName, repCount } = 
+  const { selectedWorkoutID, selectedWorkoutName, repCount } = 
     useSelector(state => state.workout);
-
+  console.log(selectedWorkoutName);
   // Use pose detection hook
   const { 
     poseDetector,
@@ -249,14 +249,6 @@ const Detector = () => {
 
   return (
     <Box sx={{ position: 'relative', p: 2, minHeight: '100vh', backgroundColor: 'black' }}>
-      <Typography 
-        variant="h4" 
-        align="center" 
-        gutterBottom 
-        sx={{ fontWeight: 'bold', mb: 3 }}
-      >
-        {workoutName}
-      </Typography>
       {devices.length > 0 ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
           <Box 
@@ -337,6 +329,11 @@ const Detector = () => {
                   ))}
                 </Select>
               </FormControl>
+
+              {/* Display Selected Workout Name */}
+              <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                {selectedWorkoutName}
+              </Typography>
 
               {/* Control Buttons */}
               <Box sx={{ display: 'flex', gap: 1 }}>

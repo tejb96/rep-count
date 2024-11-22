@@ -1,4 +1,21 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+
+export const selectWorkoutAsync = createAsyncThunk(
+  'workout/selectWorkoutAsync',
+  async (workout) => {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    if (!workout?.id || !workout?.name) {
+      throw new Error('Invalid workout data');
+    }
+    
+    return {
+      id: workout.id,
+      name: workout.name
+    };
+  }
+);
 
 const workoutSlice = createSlice({
   name: 'workout',
@@ -8,19 +25,17 @@ const workoutSlice = createSlice({
     repCount: 0,
     poses: [],
     currentPose: null,
-    isLoading: false, // Add a loading state
+    isLoading: false,
+    status: 'idle',
+    error: null
   },
   reducers: {
-    setSelectedWorkout: (state, action) => {
-      const { id, name } = action.payload; // Destructure id and name from the payload
-      state.selectedWorkoutID = id;        // Update selectedWorkoutID
-      state.selectedWorkoutName = name;    // Update selectedWorkoutName
-      state.isLoading = false;             // Set isLoading to false when workout is selected
-    },
     resetSelectedWorkout: (state) => {
       state.selectedWorkoutID = null;
       state.selectedWorkoutName = null;
-      state.isLoading = false;             // Reset isLoading when workout is reset
+      state.isLoading = false;
+      state.status = 'idle';
+      state.error = null;
     },
     updateRepCount: (state, action) => {
       state.repCount = action.payload;
@@ -33,21 +48,36 @@ const workoutSlice = createSlice({
     },
     resetRepCount: (state) => {
       state.repCount = 0;
-    },
-    setLoading: (state, action) => {
-      state.isLoading = action.payload; // Set loading state (true or false)
     }
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(selectWorkoutAsync.pending, (state) => {
+        state.status = 'loading';
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(selectWorkoutAsync.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.isLoading = false;
+        state.selectedWorkoutID = action.payload.id;
+        state.selectedWorkoutName = action.payload.name;
+        state.error = null;
+      })
+      .addCase(selectWorkoutAsync.rejected, (state, action) => {
+        state.status = 'failed';
+        state.isLoading = false;
+        state.error = action.error.message;
+      });
   }
 });
 
 export const {
-  setSelectedWorkout,
+  resetSelectedWorkout,
   updateRepCount,
   resetRepCount,
   updatePoses,
-  setCurrentPose,
-  resetSelectedWorkout,
-  setLoading // Export the setLoading action
+  setCurrentPose
 } = workoutSlice.actions;
 
 export default workoutSlice.reducer;

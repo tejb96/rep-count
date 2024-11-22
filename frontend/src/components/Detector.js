@@ -202,40 +202,48 @@ const Detector = () => {
     };
   }, [isPoseDetectionActive, poseDetector, updateKeypoints]);
 
-  // Loading state
-  if (isLoading) {
+   // Error state
+   if (error || cameraError) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-lg">Initializing camera...</p>
-      </div>
-    );
-  }
-
-  // Error state
-  if (error || cameraError) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-lg text-red-500">{error || cameraError}</p>
-      </div>
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        height="100vh"
+      >
+        <Typography variant="h6" color="error">
+          {error || cameraError}
+        </Typography>
+      </Box>
     );
   }
 
   // Permission states
   if (permissionStatus === 'pending') {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-lg">Requesting camera permission...</p>
-      </div>
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        height="100vh"
+      >
+        <Typography variant="h6">Requesting camera permission...</Typography>
+      </Box>
     );
   }
 
   if (permissionStatus === 'denied') {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-lg">
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        height="100vh"
+      >
+        <Typography variant="h6">
           Camera permission denied. Please grant permission and reload the page.
-        </p>
-      </div>
+        </Typography>
+      </Box>
     );
   }
 

@@ -5,8 +5,7 @@ import { getSlope, areLinesParallel } from '../../utils/geometryUtils';
 
 const DeadliftTracker = () => {
   const dispatch = useDispatch();
-  const keypoints = useSelector((state) => state.pose.keypoints);
-  const isPoseDetectionActive = useSelector((state) => state.pose.isPoseDetectionActive);
+  const keypoints = useSelector(state => state.keypoints);
   const [phase, setPhase] = useState('bottom');
   const lastHipY = useRef(null);
   
@@ -57,7 +56,7 @@ const DeadliftTracker = () => {
   };
 
   useEffect(() => {
-    if (!isPoseDetectionActive || !keypoints?.length) return;
+    if (!keypoints?.length) return;
 
     const hip = getKeypoint('left_hip') || getKeypoint('right_hip');
     if (!hip || hip.score < CONFIDENCE_THRESHOLD) return;
@@ -78,11 +77,9 @@ const DeadliftTracker = () => {
     } else if (phase === 'lockout' && deltaY > MOVEMENT_THRESHOLD) {
       setPhase('bottom');
     }
-  }, [keypoints, phase, dispatch, isPoseDetectionActive]);
+  }, [keypoints, phase, dispatch]);
 
-  return (
-    <div className="fixed top-2 right-4 z-10 w-80" />
-  );
+  return null;
 };
 
 export default DeadliftTracker;

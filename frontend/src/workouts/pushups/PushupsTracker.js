@@ -1,22 +1,18 @@
 import React, { useState, useEffect } from 'react';
-
 import { calculateAngle } from '../../utils/geometryUtils';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateRepCount } from '../../store/workoutSlice';
 
 const PushUpTracker = () => {
   const dispatch = useDispatch();
-  const keypoints = useSelector((state) => state.pose.keypoints);
-  const isPoseDetectionActive = useSelector((state) => state.pose.isPoseDetectionActive);
+  const keypoints = useSelector(state => state.keypoints);
   const [phase, setPhase] = useState('up'); // Initial phase
-  const repCount = useSelector((state) => state.workout.repCount);
   const ARM_THRESHOLD = 90; // Degrees for "low" position
+  const CONFIDENCE_THRESHOLD = 0.5;
 
   const getKeypoint = (name) => keypoints?.find(kp => kp.name === name);
 
-  const CONFIDENCE_THRESHOLD = 0.5;
-
-  const analyzePushUp = (keypoints) => {
+  const analyzePushUp = () => {
     // Get keypoints for both sides since we're facing the camera
     const leftElbow = getKeypoint('left_elbow');
     const leftShoulder = getKeypoint('left_shoulder');
@@ -41,19 +37,17 @@ const PushUpTracker = () => {
       setPhase('down');
     } else if (phase === 'down' && armAngle > ARM_THRESHOLD) {
       setPhase('up');
-      dispatch(updateRepCount(repCount + 1));
+      dispatch(updateRepCount(1));
     }
   };
 
   useEffect(() => {
-    if (isPoseDetectionActive && keypoints?.length) {
-      analyzePushUp(keypoints);
+    if (keypoints?.length) {
+      analyzePushUp();
     }
-  }, [keypoints, isPoseDetectionActive]);
+  }, [keypoints]);
 
-  return (
-    <div className="fixed top-2 right-4 z-10 w-80" />
-  );
+  return null;
 };
 
 export default PushUpTracker;

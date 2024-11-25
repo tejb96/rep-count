@@ -1,22 +1,23 @@
 import { useState, useCallback, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateKeypoints as updateKeypointsAction, clearKeypoints } from '../store/keypointsSlice';
 import { setupPoseDetection } from '../utils/PoseDetectionTensorflow';
 
 export const usePoseDetection = () => {
+  const dispatch = useDispatch();
+  const keypoints = useSelector(state => state.keypoints); // Direct access to keypoints from Redux store
   const [poseDetector, setPoseDetector] = useState(null);
   const [isPoseDetectionActive, setIsPoseDetectionActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [keypoints, setKeypoints] = useState([]);
   const [error, setError] = useState(null);
   
-  // Use ref to track initialization state to avoid unnecessary reinits
   const isInitialized = useRef(false);
 
   const initializePoseDetection = useCallback(async () => {
-    // If already initialized, just return
     if (isInitialized.current && poseDetector) {
       return;
     }
-
+    
     setIsLoading(true);
     try {
       const detector = await setupPoseDetection();
@@ -37,8 +38,8 @@ export const usePoseDetection = () => {
 
   const pauseDetection = useCallback(() => {
     setIsPoseDetectionActive(false);
-    setKeypoints([]);
-  }, []);
+    dispatch(clearKeypoints());
+  }, [dispatch]);
 
   const resumeDetection = useCallback(async () => {
     if (!isInitialized.current) {
@@ -51,15 +52,15 @@ export const usePoseDetection = () => {
     if (poseDetector) {
       poseDetector.dispose();
       setPoseDetector(null);
-      setKeypoints([]);
+      dispatch(clearKeypoints());
       setError(null);
       isInitialized.current = false;
     }
-  }, [poseDetector]);
+  }, [poseDetector, dispatch]);
 
   const updateKeypoints = useCallback((newKeypoints) => {
-    setKeypoints(newKeypoints);
-  }, []);
+    dispatch(updateKeypointsAction(newKeypoints));
+  }, [dispatch]);
 
   return {
     poseDetector,
@@ -69,10 +70,9 @@ export const usePoseDetection = () => {
     initializePoseDetection,
     pauseDetection,
     resumeDetection,
-    keypoints,
+    cleanup,
     updateKeypoints,
-    error,
-    setError,
-    cleanup
+    keypoints, // Expose keypoints from Redux store
+    error
   };
 };

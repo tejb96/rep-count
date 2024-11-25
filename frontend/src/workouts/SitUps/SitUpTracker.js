@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { updateRepCount } from './workoutSlice'; // Import the updateRepCount action
-import { usePoseDetection } from './usePoseDetection'; // Import the usePoseDetection hook
+import { useDispatch, useSelector } from 'react-redux';
+import { updateRepCount } from '../../store/workoutSlice';
 
 const SitUpTracker = () => {
   const dispatch = useDispatch();
-  const { keypoints } = usePoseDetection();
-  console.log(keypoints);
+  const keypoints = useSelector(state => state.keypoints); // Use keypoints directly from Redux store
   const [phase, setPhase] = useState('up'); // Initial phase
   const TORSO_THRESHOLD = 45; // Degrees for "up" position
-
+  console.log('kp', keypoints);
+  
   const getKeypoint = (name) => keypoints?.find(kp => kp.name === name);
 
   const calculateAngle = (p1, p2, p3) => {
@@ -29,7 +28,7 @@ const SitUpTracker = () => {
     const rightShoulder = getKeypoint('right_shoulder');
     const rightHip = getKeypoint('right_hip');
     const rightKnee = getKeypoint('right_knee');
-    console.log(leftShoulder, leftHip, leftKnee, rightShoulder, rightHip, rightKnee,'yo');
+
     if (!leftShoulder || !leftHip || !leftKnee || !rightShoulder || !rightHip || !rightKnee) return;
 
     const leftTorsoAngle = calculateAngle(leftShoulder, leftHip, leftKnee);
@@ -46,7 +45,7 @@ const SitUpTracker = () => {
   };
 
   useEffect(() => {
-    if (keypoints) {
+    if (keypoints && keypoints.length > 0) {
       evaluate();
     }
   }, [keypoints]);

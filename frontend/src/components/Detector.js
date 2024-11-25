@@ -13,6 +13,7 @@ import {
 import KeypointDrawer from './KeypointsDrawer';
 import { usePoseDetection } from '../hooks/usePoseDetection';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Tracker from './Tracker';
 
 const Detector = () => {
   const dispatch = useDispatch();
@@ -24,7 +25,7 @@ const Detector = () => {
     useSelector(state => state.camera);
   const { selectedWorkoutName, repCount } = 
     useSelector(state => state.workout);
-  console.log(selectedWorkoutName);
+  // console.log(selectedWorkoutName);
   // Use pose detection hook
   const { 
     poseDetector,
@@ -272,7 +273,7 @@ const Detector = () => {
                 borderRadius: '8px'
               }}
             />
-
+            <Tracker isModelOn={isPoseDetectionActive}/>
             {/* Pose Detection Canvas */}
             <canvas
               ref={canvasRef}

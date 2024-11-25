@@ -41,8 +41,8 @@ const workoutSlice = createSlice({
       // If no payload is provided, increment by 1
       // If a payload is provided, set the rep count to that value
       state.repCount = action.payload !== undefined 
-        ? action.payload 
-        : state.repCount + 1;
+        ? state.repCount += action.payload 
+        : state.repCount += 1;
     },
     updatePoses: (state, action) => {
       state.poses = action.payload;

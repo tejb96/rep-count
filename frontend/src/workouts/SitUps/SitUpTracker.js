@@ -4,11 +4,16 @@ import { updateRepCount } from '../../store/workoutSlice';
 
 const SitUpTracker = () => {
   const dispatch = useDispatch();
-  const keypoints = useSelector(state => state.keypoints); // Use keypoints directly from Redux store
-  const [phase, setPhase] = useState('up'); // Initial phase
-  const TORSO_THRESHOLD = 45; // Degrees for "up" position
-  console.log('kp', keypoints);
+  const keypoints = useSelector(state => state.keypoints);
   
+  // Updated state management
+  const [phase, setPhase] = useState('down'); // Start in down position
+  const [lastValidAngle, setLastValidAngle] = useState(null);
+  
+  // More precise angle thresholds
+  const UP_THRESHOLD = 120; // Angle when fully up
+  const DOWN_THRESHOLD = 45; // Angle when down (laying on back)
+
   const getKeypoint = (name) => keypoints?.find(kp => kp.name === name);
 
   const calculateAngle = (p1, p2, p3) => {
@@ -29,18 +34,28 @@ const SitUpTracker = () => {
     const rightHip = getKeypoint('right_hip');
     const rightKnee = getKeypoint('right_knee');
 
-    if (!leftShoulder || !leftHip || !leftKnee || !rightShoulder || !rightHip || !rightKnee) return;
+    // Ensure all keypoints are present
+    if (!leftShoulder || !leftHip || !leftKnee || 
+        !rightShoulder || !rightHip || !rightKnee) return;
 
     const leftTorsoAngle = calculateAngle(leftShoulder, leftHip, leftKnee);
     const rightTorsoAngle = calculateAngle(rightShoulder, rightHip, rightKnee);
-
     const torsoAngle = (leftTorsoAngle + rightTorsoAngle) / 2;
 
-    if (phase === 'up' && torsoAngle <= TORSO_THRESHOLD) {
-      setPhase('down');
-    } else if (phase === 'down' && torsoAngle > TORSO_THRESHOLD) {
+    // Prevent counting reps if the angle is not changing significantly
+    if (lastValidAngle !== null && 
+        Math.abs(torsoAngle - lastValidAngle) < 10) return;
+
+    // New rep tracking logic
+    if (phase === 'down' && torsoAngle >= UP_THRESHOLD) {
+      // Moving from down to up
       setPhase('up');
-      dispatch(updateRepCount(1)); // Dispatch an action to update the rep count
+      setLastValidAngle(torsoAngle);
+    } else if (phase === 'up' && torsoAngle <= DOWN_THRESHOLD) {
+      // Moving from up to down - count the rep
+      setPhase('down');
+      dispatch(updateRepCount(1));
+      setLastValidAngle(torsoAngle);
     }
   };
 
@@ -50,7 +65,7 @@ const SitUpTracker = () => {
     }
   }, [keypoints]);
 
-  return null; // Return null since this component doesn't render anything
+  return null; // No visual rendering
 };
 
 export default SitUpTracker;

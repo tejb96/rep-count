@@ -8,7 +8,7 @@ const PushUpTracker = () => {
   const keypoints = useSelector(state => state.keypoints);
   const [phase, setPhase] = useState('up'); // Initial phase
   const ARM_THRESHOLD = 90; // Degrees for "low" position
-  const CONFIDENCE_THRESHOLD = 0.5;
+  const CONFIDENCE_THRESHOLD = 0.6;
 
   const getKeypoint = (name) => keypoints?.find(kp => kp.name === name);
 

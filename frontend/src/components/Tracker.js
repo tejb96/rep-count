@@ -2,7 +2,7 @@ import React from "react";
 import { useSelector } from 'react-redux';
 import SitUpTracker from "../workouts/SitUps/SitUpTracker"
 import DeadliftTracker from "../workouts/conventionalDeadlifts/DeadliftTracker.js"
-import PushUpTracker from "../workouts/pushups/PushupsTracker.js"
+import PushUpsTracker from "../workouts/pushups/PushupsTracker.js"
 
 const Tracker = ({isModelOn}) => {
   const { selectedWorkoutName } = useSelector(state => state.workout);
@@ -14,7 +14,7 @@ const Tracker = ({isModelOn}) => {
   const trackerComponents = {
     'Sit Ups': SitUpTracker,
     'Conventional Deadlift': DeadliftTracker,
-    'Push Ups': PushUpTracker
+    'Push Ups': PushUpsTracker
   };
 
   const SelectedTracker = trackerComponents[selectedWorkoutName] || null;

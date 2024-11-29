@@ -12,9 +12,14 @@ const SitUpTracker = () => {
   
   // More precise angle thresholds
   const UP_THRESHOLD = 120; // Angle when fully up
-  const DOWN_THRESHOLD = 45; // Angle when down (laying on back)
+  const DOWN_THRESHOLD = 30; // Angle when down (laying on back)
 
-  const getKeypoint = (name) => keypoints?.find(kp => kp.name === name);
+  const CONFIDENCE_THRESHOLD = 0.7;
+
+  const getKeypoint = (name) => {
+    const keypoint = keypoints?.find(kp => kp.name === name);
+    return keypoint?.score >= CONFIDENCE_THRESHOLD ? keypoint : null;
+  };
 
   const calculateAngle = (p1, p2, p3) => {
     const v1 = { x: p2.x - p1.x, y: p2.y - p1.y };

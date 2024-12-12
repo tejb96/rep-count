@@ -79,9 +79,13 @@ const WorkoutSelector = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Select Workout
-      </Typography>
+      <Typography 
+      variant="h4" 
+      gutterBottom 
+      sx={{ textAlign: 'center', color: 'text.primary', fontWeight: 'bold' }}
+    >
+      Select Workout
+    </Typography>
       <Grid container spacing={3}>
         {workouts.map((workout) => (
           <Grid item xs={12} sm={6} md={4} key={workout.id}>

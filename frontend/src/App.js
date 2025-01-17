@@ -1,27 +1,26 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import WorkoutSelector from './components/WorkoutSelector';
-import Detector from './components/Detector';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
+import WorkoutSelector from './pages/WorkoutSelector';
+import Detector from './pages/Detector';
 
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-  },
-});
+import CssBaseline from '@mui/material/CssBaseline';
+import Navbar from "./components/Navbar";
+import HomePage from "./pages/Home";
+
+
 
 function App() {
   return (
-  <ThemeProvider theme={darkTheme}>
-    <CssBaseline />
     <Router>
-      <Routes>
-        <Route path="/" element={<WorkoutSelector />} />
-        <Route path="/detector" element={<Detector />} />
-      </Routes>
+      <Navbar>
+        <Routes>
+          <Route path="/workouts" element={<WorkoutSelector />} />
+          <Route path="/detector" element={<Detector />} />
+          <Route path="/" element={<HomePage />} />
+        </Routes>
+      </Navbar>
     </Router>
-  </ThemeProvider>
+
   );
 }
 

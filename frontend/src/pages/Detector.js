@@ -10,10 +10,10 @@ import {
   requestCameraPermissions,
   setSelectedDeviceId
 } from '../store/cameraSlice';
-import KeypointDrawer from './KeypointsDrawer';
+import KeypointDrawer from '../components/KeypointsDrawer';
 import { usePoseDetection } from '../hooks/usePoseDetection';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Tracker from './Tracker';
+import Tracker from '../components/Tracker';
 
 const Detector = () => {
   const dispatch = useDispatch();

@@ -47,7 +47,7 @@ const Navbar = ({ children }) => {
                 <AppBar
                     position="static"
                     sx={{
-                        backgroundColor: theme === 'dark' ? 'darkblue' : 'lightblue',
+                        backgroundColor: theme === 'dark' ? 'darkblue' : '#0077BE',
                         paddingLeft: '30px',
                         paddingRight: '10px',
                         height: '60px'

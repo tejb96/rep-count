@@ -4,6 +4,47 @@ import requireJwtAuth from './../../middleware/requireJwtAuth.js'; // Use JWT au
 
 const router = express.Router();
 
+/*
+Routes:
+
+POST /api/reps - Create a new rep count for the authenticated user.
+    Request Body:
+        {
+            "exercise": "string", // Name of the exercise
+            "reps": number // Number of repetitions
+        }
+    Response:
+        201 Created - Returns the newly created rep count object.
+        500 Server Error - If there is an issue saving to the database.
+
+GET /api/reps - Retrieve all rep counts for the authenticated user.
+    Response:
+        200 OK - Returns an array of rep count objects sorted by date in descending order.
+        500 Server Error - If there is an issue retrieving from the database.
+
+PUT /api/reps/:id - Update a specific rep count for the authenticated user.
+    Parameters:
+        id: string - The ID of the rep count to update.
+    Request Body:
+        {
+            "exercise": "string", // Updated name of the exercise
+            "reps": number // Updated number of repetitions
+        }
+    Response:
+        200 OK - Returns the updated rep count object.
+        404 Not Found - If the rep count is not found or the user is unauthorized.
+        500 Server Error - If there is an issue updating the database.
+
+DELETE /api/reps/:id - Delete a specific rep count for the authenticated user.
+    Parameters:
+        id: string - The ID of the rep count to delete.
+    Response:
+        204 No Content - Successfully deleted the rep count.
+        404 Not Found - If the rep count is not found or the user is unauthorized.
+        500 Server Error - If there is an issue deleting from the database.
+*/
+
+
 // Create a new rep count
 router.post('/api/reps', requireJwtAuth, async (req, res) => {
     const { exercise, reps } = req.body;

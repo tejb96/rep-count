@@ -7,6 +7,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 
+
 const Navbar = ({ children }) => {
     const auth = useSelector((state) => state.auth);
     const dispatch = useDispatch();
@@ -54,9 +55,22 @@ const Navbar = ({ children }) => {
                     }}
                 >
                     <Toolbar sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography variant="h6" sx={{ color: 'white', margin: 0, whiteSpace: 'nowrap' }}>
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                color: 'white',
+                                margin: 0,
+                                whiteSpace: 'nowrap',
+                                display: 'flex',
+                                alignItems: 'center',
+                                fontWeight: 'bold',
+                                letterSpacing: 1.5
+                            }}
+                        >
+                            <img src='/logo.jpg' alt="Logo" style={{ height: '40px', marginRight: '10px' }} />
                             Workout Tracker
                         </Typography>
+
                         <div style={{ flex: 1 }} />
                         <div style={{ display: 'flex', alignItems: 'center' }}>
                             <Button color="inherit" component={Link} to="/">Home</Button>

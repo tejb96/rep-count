@@ -6,6 +6,7 @@ import Detector from './pages/Detector';
 import CssBaseline from '@mui/material/CssBaseline';
 import Navbar from "./components/Navbar";
 import HomePage from "./pages/Home";
+import Login from "./pages/Login";
 
 
 
@@ -17,6 +18,7 @@ function App() {
           <Route path="/workouts" element={<WorkoutSelector />} />
           <Route path="/detector" element={<Detector />} />
           <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<Login />} />
         </Routes>
       </Navbar>
     </Router>

@@ -24,7 +24,7 @@ const HomePage = () => {
                     Sign Up with Google
                 </Button>
                 <Typography variant="h6" component="p" sx={{ mt: 2, color: '#555' }}>
-                    Not ready to sign up? No problem! You can check out the tracker without signing in by following <Link to="/path-placeholder" sx={{ color: '#1976d2', textDecoration: 'underline' }}>this link</Link>.
+                    Not ready to sign up? No problem! You can check out the wWorkout Tracker without signing in: <Link to="/workouts" sx={{ color: '#1976d2', textDecoration: 'underline' }}>Select workout</Link>.
                 </Typography>
             </Box>
         </Container>

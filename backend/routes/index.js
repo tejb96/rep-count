@@ -1,12 +1,13 @@
 import { Router } from 'express';
-import googleAuthRoutes from './googleAuth';
-import apiRoutes from './api';
-const router = Router();
+import router from './googleAuth.js';
+import apiRoutes from './api/index.js';
 
-router.use('/auth', googleAuthRoutes);
-router.use('/api', apiRoutes);
+const routes = Router();
+
+routes.use('/auth', router);
+routes.use('/api', apiRoutes);
 // fallback 404
-router.use('/api', (req, res) => res.status(404).json('No route for this path'));
+routes.use('/api', (req, res) => res.status(404).json('No route for this path'));
 
-export default router;
+export default routes;
 

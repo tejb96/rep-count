@@ -14,14 +14,14 @@ const Login = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Handle OAuth cookie if it exists
+        // Check for existing OAuth cookie and dispatch login action if available
         const cookieJwt = Cookies.get('x-auth-cookie');
         if (cookieJwt) {
-            Cookies.remove('x-auth-cookie');
-            dispatch(logInUserWithOauth(cookieJwt));
+            Cookies.remove('x-auth-cookie'); // Remove the cookie once it's used
+            dispatch(logInUserWithOauth()); // Trigger login with OAuth
         }
         if (auth.isAuthenticated) {
-            navigate('/'); // Redirect to the root path
+            navigate('/'); // Redirect to the root if authenticated
         }
     }, [dispatch, auth.isAuthenticated, navigate]);
 
@@ -38,7 +38,7 @@ const Login = () => {
                     variant="contained"
                     color="primary"
                     startIcon={<GoogleIcon />}
-                    href={GOOGLE_AUTH_LINK}
+                    href={GOOGLE_AUTH_LINK} // Redirect to Google login
                     sx={{
                         backgroundColor: '#4285F4',
                         '&:hover': { backgroundColor: '#357ae8' },

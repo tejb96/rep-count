@@ -1,9 +1,11 @@
 import { Router } from 'express';
-import usersRoutes from './users';
-import repRoutes from './repCounts.js';
-const router = Router();
+import User from './users.js';
 
-router.use('/users', usersRoutes);
-router.use('/repCounts', repRoutes);
 
-export default router;
+
+const apiRoutes = Router();
+
+apiRoutes.use('/user', User);
+
+
+export default apiRoutes;

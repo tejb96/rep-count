@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 const initialState = {
-    token: localStorage.getItem('token'),
     isAuthenticated: false,
     isLoading: false,
     me: null,
@@ -10,46 +9,26 @@ const initialState = {
     appLoaded: false,
 };
 
-// Function to attach token to headers
-const attachTokenToHeaders = (getState) => {
-    const token = getState().auth.token;
-
-    const config = {
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    };
-
-    if (token) {
-        config.headers['x-auth-token'] = token;
-    }
-
-    return config;
-};
-
 // Async thunk for logging in with OAuth
-export const logInUserWithOauth = createAsyncThunk('auth/logInUserWithOauth', async (token, { getState, rejectWithValue }) => {
+export const logInUserWithOauth = createAsyncThunk('auth/logInUserWithOauth', async (_, { rejectWithValue }) => {
     try {
-        const headers = attachTokenToHeaders(getState); // Use the function to get headers
-        const response = await axios.get('/api/users/me', headers); // Use the headers in the request
-        localStorage.setItem('token', token);
-        return { me: response.data.me, token };
+        // Fetch the authenticated user's data after successful login
+        const response = await axios.get('/api/users/me');
+        return { me: response.data };
     } catch (err) {
-        return rejectWithValue(err.response.data.message);
+        return rejectWithValue(err.response?.data?.message || 'Failed to log in');
     }
 });
 
 // Async thunk for logging out
 export const logOutUser = createAsyncThunk('auth/logOutUser', async ({ navigate }, { rejectWithValue }) => {
     try {
-        await axios.get('/auth/logout');
-        localStorage.removeItem('token');
-        navigate('/'); // Use the navigate function to redirect the user
+        await axios.get('/auth/logout'); // Clear the server-side cookie
+        navigate('/'); // Redirect to the home page
     } catch (err) {
-        return rejectWithValue(err.message);
+        return rejectWithValue(err.response?.data?.message || 'Failed to log out');
     }
 });
-
 
 // Create the slice
 const authSlice = createSlice({
@@ -69,12 +48,10 @@ const authSlice = createSlice({
             .addCase(logInUserWithOauth.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.isAuthenticated = true;
-                state.token = action.payload.token;
-                state.me = action.payload.me;
+                state.me = action.payload.me; // Store user data
                 state.error = null;
             })
             .addCase(logInUserWithOauth.rejected, (state, action) => {
-                localStorage.removeItem('token');
                 state.isLoading = false;
                 state.isAuthenticated = false;
                 state.me = null;
@@ -85,9 +62,8 @@ const authSlice = createSlice({
             })
             .addCase(logOutUser.fulfilled, (state) => {
                 state.isLoading = false;
-                state.token = null;
-                state.me = null;
                 state.isAuthenticated = false;
+                state.me = null;
                 state.error = null; // Clear error on logout
             })
             .addCase(logOutUser.rejected, (state, action) => {

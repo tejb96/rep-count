@@ -6,7 +6,6 @@ import dotenv from 'dotenv';
 
 dotenv.config(); // Load variables from .env file
 
-
 // Server URL based on environment
 const serverUrl = process.env.NODE_ENV === 'production' ? process.env.SERVER_URL_PROD : process.env.SERVER_URL_DEV;
 

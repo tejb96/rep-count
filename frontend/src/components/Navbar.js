@@ -21,7 +21,7 @@ const Navbar = ({ children }) => {
     const auth = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
-
+    console.log(auth);
     const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
 
     useEffect(() => {

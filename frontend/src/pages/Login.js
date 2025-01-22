@@ -1,53 +1,54 @@
+// Login.js
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
 import { Button, Container, Typography, Box } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
-import { useDispatch, useSelector } from 'react-redux';
-
+import { useSelector } from 'react-redux';
+import CustomLayout from '../components/customLayout';
 import { GOOGLE_AUTH_LINK } from '../constants/index';
-import { logInUserWithOauth } from '../store/authSlice';
 
 const Login = () => {
-    const dispatch = useDispatch();
     const auth = useSelector((state) => state.auth);
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Check for existing OAuth cookie and dispatch login action if available
-        const cookieJwt = Cookies.get('x-auth-cookie');
-        if (cookieJwt) {
-            Cookies.remove('x-auth-cookie'); // Remove the cookie once it's used
-            dispatch(logInUserWithOauth()); // Trigger login with OAuth
-        }
         if (auth.isAuthenticated) {
-            navigate('/'); // Redirect to the root if authenticated
+            navigate('/'); // Redirect to home if already authenticated
         }
-    }, [dispatch, auth.isAuthenticated, navigate]);
+    }, [auth.isAuthenticated, navigate]);
 
     return (
-        <Container maxWidth="sm" sx={{ textAlign: 'center', mt: 8 }}>
-            <Typography variant="h4" gutterBottom>
-                Log In
-            </Typography>
-            <Typography variant="h6" gutterBottom>
-                Log in with Google
-            </Typography>
-            <Box mt={4}>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<GoogleIcon />}
-                    href={GOOGLE_AUTH_LINK} // Redirect to Google login
-                    sx={{
-                        backgroundColor: '#4285F4',
-                        '&:hover': { backgroundColor: '#357ae8' },
-                    }}
-                >
-                    Login with Google
-                </Button>
-            </Box>
-        </Container>
+        <CustomLayout>
+            <Container maxWidth="sm" sx={{ textAlign: 'center', mt: 8 }}>
+                {/*<Typography variant="h4" gutterBottom>*/}
+                {/*    Log in or Sign up to Get Started*/}
+                {/*</Typography>*/}
+                <Box>
+                    <img src="/logo.jpg" alt="Logo" style={{ height: '200px', marginRight: '10px' }} />
+                </Box>
+                <Typography variant="body1" sx={{ mt: 2, color: 'text.secondary' }}>
+                    Use your Google account to sign up or log in. If you don't have an account with us yet, one will be created for you.
+                </Typography>
+
+                <Box mt={4}>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<GoogleIcon />}
+                        href={GOOGLE_AUTH_LINK}
+                        sx={{
+                            backgroundColor: '#4285F4',
+                            '&:hover': { backgroundColor: '#357ae8' },
+                            fontSize: '16px',
+                            padding: '12px 24px',
+                            textTransform: 'none',
+                        }}
+                    >
+                        Log in / Sign up with Google
+                    </Button>
+                </Box>
+            </Container>
+        </CustomLayout>
     );
 };
 

@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateKeypoints as updateKeypointsAction, clearKeypoints } from '../store/keypointsSlice';
-import { setupPoseDetection } from '../utils/PoseDetectionTensorflow';
+import { setupPoseDetection } from '../config/PoseDetectionTensorflow';
 
 export const usePoseDetection = () => {
   const dispatch = useDispatch();

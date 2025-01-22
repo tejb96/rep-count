@@ -44,14 +44,14 @@ router.get(
             }
 
             // Issue a JWT for the user
-            const token = jwt.sign({ id: user._id }, jwtSecret, { expiresIn: '7d' });
+            const token = jwt.sign({ id: user._id }, jwtSecret, { expiresIn: '1d' });
 
             // Set the token in an HTTP-only cookie
             res.cookie('x-auth-token', token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production', // Secure cookie in production
                 sameSite: 'strict',
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+                maxAge: 1 * 24 * 60 * 60 * 1000, // 7 days
             });
 
             // Redirect the user to the client application

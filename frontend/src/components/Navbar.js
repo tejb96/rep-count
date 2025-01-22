@@ -1,12 +1,21 @@
-import React, {useEffect, useState} from 'react';
+// Updated code for Navbar.js
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import {AppBar, Toolbar, Typography, Button, IconButton, createTheme, ThemeProvider, Box} from '@mui/material';
+import {
+    AppBar,
+    Toolbar,
+    Typography,
+    Button,
+    IconButton,
+    createTheme,
+    ThemeProvider,
+    Box,
+} from '@mui/material';
 import { logOutUser } from '../store/authSlice';
-import CssBaseline from "@mui/material/CssBaseline";
+import CssBaseline from '@mui/material/CssBaseline';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
-
 
 const Navbar = ({ children }) => {
     const auth = useSelector((state) => state.auth);
@@ -22,19 +31,34 @@ const Navbar = ({ children }) => {
     const darkTheme = createTheme({
         palette: {
             mode: 'dark',
+            background: {
+                default: '#121212',
+                paper: '#1d1d1d',
+            },
+            text: {
+                primary: '#ffffff',
+                secondary: '#aaaaaa',
+            },
         },
     });
 
     const lightTheme = createTheme({
         palette: {
             mode: 'light',
+            background: {
+                default: '#f5f5f5',
+                paper: '#ffffff',
+            },
+            text: {
+                primary: '#000000',
+                secondary: '#555555',
+            },
         },
     });
 
     const handleToggleTheme = () => {
         setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
     };
-
 
     const onLogOut = (event) => {
         event.preventDefault();
@@ -51,7 +75,7 @@ const Navbar = ({ children }) => {
                         backgroundColor: theme === 'dark' ? 'darkblue' : '#0077BE',
                         paddingLeft: '30px',
                         paddingRight: '10px',
-                        height: '60px'
+                        height: '60px',
                     }}
                 >
                     <Toolbar sx={{ display: 'flex', alignItems: 'center' }}>
@@ -64,22 +88,30 @@ const Navbar = ({ children }) => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 fontWeight: 'bold',
-                                letterSpacing: 1.5
+                                letterSpacing: 1.5,
                             }}
                         >
-                            <img src='/logo.jpg' alt="Logo" style={{ height: '40px', marginRight: '10px' }} />
+                            <img src="/logo.jpg" alt="Logo" style={{ height: '40px', marginRight: '10px' }} />
                             Workout Tracker
                         </Typography>
 
                         <div style={{ flex: 1 }} />
                         <div style={{ display: 'flex', alignItems: 'center' }}>
-                            <Button color="inherit" component={Link} to="/">Home</Button>
+                            <Button color="inherit" component={Link} to="/">
+                                Home
+                            </Button>
                             {auth.isAuthenticated ? (
                                 <>
-                                    <Button color="inherit" component={Link} to="/users">Users</Button>
-                                    <Button color="inherit" component={Link} to={`/${auth.me.username}`}>Profile</Button>
+                                    <Button color="inherit" component={Link} to="/users">
+                                        Users
+                                    </Button>
+                                    <Button color="inherit" component={Link} to={`/${auth.me.username}`}>
+                                        Profile
+                                    </Button>
                                     {auth.me?.role === 'ADMIN' && (
-                                        <Button color="inherit" component={Link} to="/admin">Admin</Button>
+                                        <Button color="inherit" component={Link} to="/admin">
+                                            Admin
+                                        </Button>
                                     )}
                                     <img
                                         src={auth.me.avatar}
@@ -97,7 +129,9 @@ const Navbar = ({ children }) => {
                                     </IconButton>
                                 </>
                             ) : (
-                                <Button color="inherit" component={Link} to="/login">Login</Button>
+                                <Button color="inherit" component={Link} to="/login">
+                                    Login
+                                </Button>
                             )}
                             <IconButton color="inherit" onClick={handleToggleTheme}>
                                 {theme === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
@@ -105,9 +139,7 @@ const Navbar = ({ children }) => {
                         </div>
                     </Toolbar>
                 </AppBar>
-                <Box mt={2}>
-                    {children} {/* Render the children here */}
-                </Box>
+                <Box mt={2}>{children}</Box>
             </Box>
         </ThemeProvider>
     );

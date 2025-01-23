@@ -13,6 +13,7 @@ const initialState = {
 export const logInUserWithOauth = createAsyncThunk('auth/logInUserWithOauth', async (_, { rejectWithValue }) => {
     try {
         // Fetch the authenticated user's data after successful login
+        console.log('logInUserWithOauth');
         const response = await axios.get('/api/users/me');
         return { me: response.data };
     } catch (err) {
@@ -23,7 +24,7 @@ export const logInUserWithOauth = createAsyncThunk('auth/logInUserWithOauth', as
 // Async thunk for logging out
 export const logOutUser = createAsyncThunk('auth/logOutUser', async ({ navigate }, { rejectWithValue }) => {
     try {
-        await axios.get('/auth/logout'); // Clear the server-side cookie
+        await axios.get('/auth/logout'); // Clear the  cookie
         navigate('/'); // Redirect to the home page
     } catch (err) {
         return rejectWithValue(err.response?.data?.message || 'Failed to log out');

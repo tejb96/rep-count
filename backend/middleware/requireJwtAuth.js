@@ -1,19 +1,26 @@
-import passport from 'passport';
+import jwt from 'jsonwebtoken';
 
 const requireJwtAuth = (req, res, next) => {
-    passport.authenticate('jwt', { session: false })(req, res, (err) => {
-        if (err || !req.user) {
-            return res.status(401).json({ message: 'Unauthorized' });
+    try {
+        // Extract the token from the HTTP-only cookie
+        const token = req.cookies['x-auth-token'];
+
+        if (!token) {
+            return res.status(401).json({ message: 'Unauthorized: No token provided' });
         }
 
-        // Ensure that the token is valid and not expired
-        const now = Date.now() / 1000; // current time in seconds
-        if (req.user.exp < now) {
-            return res.status(401).json({ message: 'Token has expired' });
-        }
+        // Verify the token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log(decoded);
+
+        // Attach the decoded user to the request
+        req.user = decoded;
 
         next();
-    });
+    } catch (err) {
+        console.error('JWT verification error:', err.message);
+        return res.status(401).json({ message: 'Unauthorized: Invalid or expired token' });
+    }
 };
 
 export default requireJwtAuth;

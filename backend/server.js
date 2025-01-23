@@ -2,22 +2,26 @@ import express from 'express';
 import cors from 'cors';
 import * as dotenv from 'dotenv';
 import connectDB from './mongodb/connect.js';
-import './oAuth/passport.js'; // Ensure Passport strategies are registered
-import routes from './routes/index.js'; // Import the main routes index
+import './oAuth/passport.js';
+import routes from './routes/index.js';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
 const app = express();
 
+//middleware
 app.use(
     cors({
-        origin: process.env.CLIEN_URL_DEV,
+        origin: process.env.CLIENT_URL_DEV,
         methods: "GET,POST,PUT,DELETE",
         credentials: true,
     })
 );
 
-app.use(express.json({ limit: '20mb' }));
+app.use(cookieParser());
+
+app.use(express.json());
 
 // Base route
 app.get('/', (req, res) => {

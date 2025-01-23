@@ -1,19 +1,13 @@
 import { Router } from 'express';
 import requireJwtAuth from '../../middleware/requireJwtAuth.js';
+import User from '../../mongodb/models/User.js';
 
-
-const User = Router();
+const userRoutes = Router();
 
 // Get current user information (me)
-User.get('/me', requireJwtAuth, (req, res) => {
-    const me = req.user.toJSON();
-    res.json({ me });
-});
-
-// Get user by username
-User.get('/:username', requireJwtAuth, async (req, res) => {
+userRoutes.get('/me', requireJwtAuth, async (req, res) => {
     try {
-        const user = await User.findOne({ username: req.params.username });
+        const user = await User.findById(req.user.id);  // Using req.user.id
         if (!user) return res.status(404).json({ message: 'No user found.' });
         res.json({ user: user.toJSON() });
     } catch (err) {
@@ -21,35 +15,51 @@ User.get('/:username', requireJwtAuth, async (req, res) => {
     }
 });
 
-// Get all users
-User.get('/', requireJwtAuth, async (req, res) => {
+// Get user by ID (use req.user.id instead of params.id)
+userRoutes.get('/:id', requireJwtAuth, async (req, res) => {
     try {
-        const users = await User.find().sort({ createdAt: 'desc' });
+        if (req.user.id !== req.params.id) {  // Ensure the requester matches the user being fetched
+            return res.status(403).json({ message: 'You do not have privileges to access this user.' });
+        }
 
-        res.json({
-            users: users.map((m) => m.toJSON()),
-        });
+        const user = await User.findById(req.params.id);  // Find user by ID
+        if (!user) return res.status(404).json({ message: 'No user found.' });
+        res.json({ user: user.toJSON() });
     } catch (err) {
         res.status(500).json({ message: 'Something went wrong.' });
     }
 });
 
-// Delete user by ID (with admin check)
-User.delete('/:id', requireJwtAuth, async (req, res) => {
+// Update user by ID (use req.user.id)
+userRoutes.put('/:id', requireJwtAuth, async (req, res) => {
     try {
-        const tempUser = await User.findById(req.params.id);
-        if (!tempUser) return res.status(404).json({ message: 'No such user.' });
-        if (!(tempUser.id === req.user.id || req.user.role === 'ADMIN'))
-            return res.status(400).json({ message: 'You do not have privileges to delete that user.' });
+        if (req.user.id !== req.params.id) {  // Ensure requester matches the user being updated
+            return res.status(403).json({ message: 'You do not have privileges to update this user.' });
+        }
 
-        // Delete all associated workouts of the user
-        await WorkoutStats.deleteMany({ user: tempUser.id });
-        // Delete user
-        const user = await User.findByIdAndRemove(tempUser.id);
-        res.status(200).json({ user });
+        const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!updatedUser) return res.status(404).json({ message: 'No such user.' });
+
+        res.status(200).json({ user: updatedUser.toJSON() });
     } catch (err) {
         res.status(500).json({ message: 'Something went wrong.' });
     }
 });
 
-export default User;
+// Delete user by ID (use req.user.id)
+userRoutes.delete('/:id', requireJwtAuth, async (req, res) => {
+    try {
+        if (req.user.id !== req.params.id && req.user.role !== 'ADMIN') {  // Ensure requester has permissions to delete
+            return res.status(403).json({ message: 'You do not have privileges to delete this user.' });
+        }
+
+        const user = await User.findByIdAndRemove(req.params.id);
+        if (!user) return res.status(404).json({ message: 'No such user.' });
+
+        res.status(200).json({ message: 'User deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ message: 'Something went wrong.' });
+    }
+});
+
+export default userRoutes;

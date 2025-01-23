@@ -19,6 +19,7 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 
 const Navbar = ({ children }) => {
     const auth = useSelector((state) => state.auth);
+    // console.log(auth.me.avatar, "navbar line 22");
     const dispatch = useDispatch();
     const navigate = useNavigate();
     console.log(auth);
@@ -102,28 +103,37 @@ const Navbar = ({ children }) => {
                             </Button>
                             {auth.isAuthenticated ? (
                                 <>
-                                    <Button color="inherit" component={Link} to="/users">
-                                        Users
+                                    <Button color="inherit" component={Link} to="/records">
+                                        Records
                                     </Button>
-                                    <Button color="inherit" component={Link} to={`/${auth.me.username}`}>
-                                        Profile
-                                    </Button>
+                                    <IconButton
+                                        color="inherit"
+                                        component={Link}
+                                        to={`/${auth.me.username}`}
+                                        sx={{
+                                            width: '40px',
+                                            height: '40px',
+                                            padding: 0, // Remove padding to keep it circular
+                                            marginLeft: '20px',
+                                        }}
+                                    >
+                                        <img
+                                            src={auth.me.user.avatar}
+                                            alt=""
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                borderRadius: '50%',
+                                                objectFit: 'cover',
+                                            }}
+                                        />
+                                    </IconButton>
                                     {auth.me?.role === 'ADMIN' && (
                                         <Button color="inherit" component={Link} to="/admin">
                                             Admin
                                         </Button>
                                     )}
-                                    <img
-                                        src={auth.me.avatar}
-                                        alt="User Avatar"
-                                        style={{
-                                            width: '30px',
-                                            height: '30px',
-                                            borderRadius: '50%',
-                                            marginLeft: '20px',
-                                            objectFit: 'cover',
-                                        }}
-                                    />
+
                                     <IconButton color="inherit" onClick={onLogOut}>
                                         Log out
                                     </IconButton>
@@ -134,7 +144,7 @@ const Navbar = ({ children }) => {
                                 </Button>
                             )}
                             <IconButton color="inherit" onClick={handleToggleTheme}>
-                                {theme === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
+                                {theme === 'light' ? <Brightness7Icon /> : <Brightness4Icon />}
                             </IconButton>
                         </div>
                     </Toolbar>

@@ -44,12 +44,12 @@ router.get(
             }
 
             // Issue a JWT for the user
-            const token = jwt.sign({ id: user._id }, jwtSecret, { expiresIn: '1d' });
+            const token = jwt.sign({ id: user._id}, jwtSecret, { expiresIn: '1d' });
 
             // Set the token in an HTTP-only cookie
             res.cookie('x-auth-token', token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production', // Secure cookie in production
+                secure: process.env.NODE_ENV==='PRODUCTION', // Secure cookie in production
                 sameSite: 'strict',
                 maxAge: 1 * 24 * 60 * 60 * 1000, // 7 days
             });
@@ -62,5 +62,22 @@ router.get(
         }
     },
 );
+
+// Logout route
+router.get(
+    '/logout',
+    async (req, res) => {
+        try {
+            // Clear the JWT cookie by setting its value to an empty string and expiring immediately
+            res.clearCookie('x-auth-token', { httpOnly: true, secure: true, sameSite: 'Strict' });
+
+            res.status(200).json({ message: 'Logged out successfully' });
+        } catch (error) {
+            console.error('Logout error:', error.message);
+            res.status(500).json({ message: 'Internal Server Error' });
+        }
+    },
+);
+
 
 export default router;

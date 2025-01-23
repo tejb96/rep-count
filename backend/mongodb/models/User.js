@@ -19,23 +19,13 @@ const userSchema = new Schema(
             type: String,
             required: true,
         },
-        avatar: String,
+        avatar: { type: String, default: '/logo.jpg' },
         role: { type: String, default: 'USER' },
 
     },
     { timestamps: true },
 );
 
-// JWT token verification and expiration check
-userSchema.methods.isTokenValid = function (token) {
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const now = Date.now() / 1000; // Current time in seconds
-        return decoded.exp > now;
-    } catch (err) {
-        return false;
-    }
-};
 
 // To JSON method
 userSchema.methods.toJSON = function () {
@@ -44,7 +34,7 @@ userSchema.methods.toJSON = function () {
 
         email: this.email,
 
-
+        avatar: this.avatar,
         name: this.name,
         role: this.role,
 

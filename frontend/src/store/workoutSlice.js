@@ -1,20 +1,20 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 export const selectWorkoutAsync = createAsyncThunk(
-  'workout/selectWorkoutAsync',
-  async (workout) => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    if (!workout?.id || !workout?.name) {
-      throw new Error('Invalid workout data');
+    'workout/selectWorkoutAsync',
+    async (workout) => {
+
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      if (!workout?.id || !workout?.name) {
+        throw new Error('Invalid workout data');
+      }
+
+      return {
+        id: workout.id,
+        name: workout.name
+      };
     }
-    
-    return {
-      id: workout.id,
-      name: workout.name
-    };
-  }
 );
 
 const workoutSlice = createSlice({
@@ -23,8 +23,7 @@ const workoutSlice = createSlice({
     selectedWorkoutID: null,
     selectedWorkoutName: null,
     repCount: 0,
-    poses: [],
-    currentPose: null,
+    phase: null, // New field to track the current phase of the exercise
     isLoading: false,
     status: 'idle',
     error: null
@@ -38,17 +37,12 @@ const workoutSlice = createSlice({
       state.error = null;
     },
     updateRepCount: (state, action) => {
-      // If no payload is provided, increment by 1
-      // If a payload is provided, set the rep count to that value
-      state.repCount = action.payload !== undefined 
-        ? state.repCount += action.payload 
-        : state.repCount += 1;
+      state.repCount = action.payload !== undefined
+          ? state.repCount += action.payload
+          : state.repCount += 1;
     },
-    updatePoses: (state, action) => {
-      state.poses = action.payload;
-    },
-    setCurrentPose: (state, action) => {
-      state.currentPose = action.payload;
+    setPhaseWorkout: (state, action) => {
+      state.phase = action.payload; // Update the current phase
     },
     resetRepCount: (state) => {
       state.repCount = 0;
@@ -56,23 +50,23 @@ const workoutSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(selectWorkoutAsync.pending, (state) => {
-        state.status = 'loading';
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(selectWorkoutAsync.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        state.isLoading = false;
-        state.selectedWorkoutID = action.payload.id;
-        state.selectedWorkoutName = action.payload.name;
-        state.error = null;
-      })
-      .addCase(selectWorkoutAsync.rejected, (state, action) => {
-        state.status = 'failed';
-        state.isLoading = false;
-        state.error = action.error.message;
-      });
+        .addCase(selectWorkoutAsync.pending, (state) => {
+          state.status = 'loading';
+          state.isLoading = true;
+          state.error = null;
+        })
+        .addCase(selectWorkoutAsync.fulfilled, (state, action) => {
+          state.status = 'succeeded';
+          state.isLoading = false;
+          state.selectedWorkoutID = action.payload.id;
+          state.selectedWorkoutName = action.payload.name;
+          state.error = null;
+        })
+        .addCase(selectWorkoutAsync.rejected, (state, action) => {
+          state.status = 'failed';
+          state.isLoading = false;
+          state.error = action.error.message;
+        });
   }
 });
 
@@ -80,8 +74,7 @@ export const {
   resetSelectedWorkout,
   updateRepCount,
   resetRepCount,
-  updatePoses,
-  setCurrentPose
+  setPhaseWorkout // Export the new action
 } = workoutSlice.actions;
 
 export default workoutSlice.reducer;

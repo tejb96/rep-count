@@ -1,7 +1,8 @@
 import React from 'react';
-import { Typography, Button, Link } from '@mui/material';
+import { Typography, Link as Ln} from '@mui/material';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import CustomLayout from '../components/customLayout';
+import { Link } from 'react-router-dom';
 
 const HomePage = () => {
     return (
@@ -31,7 +32,7 @@ const HomePage = () => {
                 Ready to elevate your fitness journey? Sign up effortlessly by logging in with your Google account. This way, your progress and workout history are securely saved, allowing you to track how many reps you’ve done and when.
             </Typography>
             <Typography variant="h6" component="p" sx={{ mt: 2, color: 'text.secondary' }}>
-                Not ready to sign up? No problem! You can check out the Workout Tracker without signing in by following this link: <Link to="/workouts" sx={{ textDecoration: 'underline' }}>Select workout</Link>.
+                Not ready to sign up? No problem! You can check out the Workout Tracker without signing in by following this link: <Ln><Link to="/workouts" sx={{ textDecoration: 'underline' }}>Select workout</Link></Ln>
             </Typography>
         </CustomLayout>
     );

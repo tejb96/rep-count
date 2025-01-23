@@ -17,13 +17,13 @@ import Tracker from '../components/Tracker';
 
 const Detector = () => {
   const dispatch = useDispatch();
-  const location = useLocation();
+  // const location = useLocation();
   const navigate = useNavigate();
   
   // Redux state
   const { devices, permissionStatus, error: cameraError, selectedDeviceId } = 
     useSelector(state => state.camera);
-  const { selectedWorkoutName, repCount } = 
+  const { selectedWorkoutName, repCount, phase } =
     useSelector(state => state.workout);
   // console.log(selectedWorkoutName);
   // Use pose detection hook
@@ -47,8 +47,10 @@ const Detector = () => {
 
   // Initialize camera on mount
   useEffect(() => {
-    dispatch(requestCameraPermissions());
-  }, [dispatch]);
+    if (permissionStatus !== 'granted') {
+      dispatch(requestCameraPermissions());
+    }
+  }, [dispatch, permissionStatus]);
 
   // Handle device changes
   useEffect(() => {
@@ -99,10 +101,22 @@ const Detector = () => {
   const togglePoseDetection = async () => {
     try {
       if (!isPoseDetectionActive) {
-        // If not initialized, this will initialize. If already initialized, it will just resume
+        // Ensure camera permissions are granted
+        if (permissionStatus !== 'granted') {
+          dispatch(requestCameraPermissions());
+          return;
+        }
+
+        // Ensure the camera stream is ready
+        if (!webcamRef.current?.video?.srcObject) {
+          console.error('Camera stream is not available.');
+          return;
+        }
+
+        // Start or resume pose detection
         await resumeDetection();
       } else {
-        // This just pauses detection without disposing of the model
+        // Pause pose detection
         pauseDetection();
         if (detectionRef.current) {
           cancelAnimationFrame(detectionRef.current);
@@ -129,7 +143,7 @@ const Detector = () => {
         detectionRef.current = null;
       }
     }
-    navigate('/');
+    navigate('/workouts');
   };
 
   // Cleanup on unmount
@@ -376,6 +390,9 @@ const Detector = () => {
               </Typography>
               <Typography variant="body1">
                 reps
+              </Typography>
+              <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                Phase: {phase}
               </Typography>
             </Box>
           </Box>

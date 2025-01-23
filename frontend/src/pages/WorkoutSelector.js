@@ -84,7 +84,7 @@ const WorkoutSelector = () => {
       gutterBottom 
       sx={{ textAlign: 'center', color: 'text.primary', fontWeight: 'bold' }}
     >
-      Select Workout
+      Select A Workout
     </Typography>
       <Grid container spacing={3}>
         {workouts.map((workout) => (

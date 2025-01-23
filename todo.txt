@@ -1,0 +1,28 @@
+todo
+
+tasks 
+-make a start session/ stop session button in frontend
+-rename start/stop movenet buttons to start set/stop set
+
+
+
+
+
+
+
+done👍
+-make a paper or card comp
+-make standard component that each page can import and it handles theme change
+-front end axios config set correctly to use credentials
+-show user name and avatar on navbar after login
+	-verify that middleware is correctly extractinga nd validating the jwt from cookie
+	-ensure that the /api/users/me route is correctly returning user data
+	-test api/users/me using postmant with a cookie
+	-backend redirects to frontend home, but loginpage in frontend might not be configured to handle that
+	
+	
+	
+
+
+
+

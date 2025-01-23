@@ -11,7 +11,7 @@ const requireJwtAuth = (req, res, next) => {
 
         // Verify the token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log(decoded);
+        // console.log(decoded);
 
         // Attach the decoded user to the request
         req.user = decoded;

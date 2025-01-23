@@ -1,0 +1,23 @@
+workflow
+
+Workflow
+
+    User clicks "Start Workout":
+
+        A new WorkoutSession is created.
+
+        The sessionId is stored in the frontend state.
+
+    User performs a set:
+
+        User clicks "Start Set" to begin tracking reps using MoveNet.
+
+        User clicks "Stop Set" to save the reps and duration for that set.
+
+        The reps are saved as a Repetition document linked to the current WorkoutSession.
+
+    User clicks "End Workout":
+
+        The current WorkoutSession is updated with the endTime and total reps.
+
+        The session is marked as complete.

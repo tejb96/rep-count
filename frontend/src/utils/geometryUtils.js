@@ -1,5 +1,22 @@
 // utils/geometryUtils.js
 
+/**
+ * Calculates the Euclidean distance between two keypoints.
+ * @param {Object} kp1 - The first keypoint with `x` and `y` properties.
+ * @param {Object} kp2 - The second keypoint with `x` and `y` properties.
+ * @returns {number} - The distance between the two keypoints.
+ */
+export const getDistance = (kp1, kp2) => {
+  if (!kp1 || !kp2 || kp1.x === undefined || kp1.y === undefined || kp2.x === undefined || kp2.y === undefined) {
+    console.error("Invalid keypoints provided to getDistance");
+    return Infinity; // Return a large number to indicate invalid input
+  }
+
+  const dx = kp1.x - kp2.x;
+  const dy = kp1.y - kp2.y;
+  return Math.sqrt(dx * dx + dy * dy);
+};
+
 // Calculate slope of line between two points
 export const getSlope = (point1, point2) => {
     if (!point1 || !point2) return null;

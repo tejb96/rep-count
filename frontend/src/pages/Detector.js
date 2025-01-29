@@ -11,6 +11,7 @@ import { setupPoseDetection } from '../config/PoseDetectionTensorflow';
 import DeadliftTracker from '../workoutsTrackers/DeadliftTracker';
 import SitUpTracker from "../workoutsTrackers/SitUpTracker";
 import PushUpsTracker from "../workoutsTrackers/PushupsTracker";
+import CustomLayout from "../components/customLayout";
 
 
 const Detector = () => {
@@ -32,6 +33,7 @@ const Detector = () => {
   const [keypoints, setKeypoints] = useState([]); // Local state for keypoints
   const [reps, setReps] = useState(0); // Local state for rep count
   const [phase, setPhase] = useState(''); // Local state for workout phase
+  const [aspectRatio, setAspectRatio] = useState(4 / 3);
 
   // Refs
   const webcamRef = useRef(null);
@@ -256,7 +258,9 @@ const Detector = () => {
     const runDetection = async () => {
       if (isPoseDetectionActive && poseDetector) {
         await detectPose();
-        detectionRef.current = requestAnimationFrame(runDetection);
+        setTimeout(() => {
+          detectionRef.current = requestAnimationFrame(runDetection);
+        }, 100); // Adjust the delay as needed
       }
     };
 
@@ -309,12 +313,15 @@ const Detector = () => {
           <Typography variant="h6">
             Camera permission denied. Please grant permission and reload the page.
           </Typography>
+          <Button onClick={() => dispatch(requestCameraPermissions())} sx={{ ml: 2 }}>
+            Retry
+          </Button>
         </Box>
     );
   }
 
   return (
-      <Box sx={{ position: 'relative', p: 2, minHeight: '100vh', backgroundColor: 'black' }}>
+      <CustomLayout>
         {devices.length > 0 ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
               <Box
@@ -324,7 +331,7 @@ const Detector = () => {
                     maxWidth: '1000px',
                     height: { xs: '480px', sm: '600px', md: '720px' },
                     margin: '0 auto',
-                    aspectRatio: '4/3',
+                    aspectRatio: aspectRatio, // Use dynamic aspect ratio
                   }}
               >
                 {/* Camera Feed */}
@@ -332,7 +339,7 @@ const Detector = () => {
                     ref={webcamRef}
                     videoConstraints={{
                       deviceId: selectedDeviceId,
-                      aspectRatio: 4 / 3,
+                      aspectRatio: aspectRatio, // Use dynamic aspect ratio
                       facingMode: 'user',
                     }}
                     style={{
@@ -340,6 +347,10 @@ const Detector = () => {
                       height: '100%',
                       objectFit: 'cover',
                       borderRadius: '8px',
+                    }}
+                    onLoadedMetadata={() => {
+                      const video = webcamRef.current.video;
+                      setAspectRatio(video.videoWidth / video.videoHeight);
                     }}
                 />
                 <Tracker isModelOn={isPoseDetectionActive} />
@@ -463,7 +474,7 @@ const Detector = () => {
               </Typography>
             </Box>
         )}
-      </Box>
+      </CustomLayout>
   );
 };
 

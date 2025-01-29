@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 const SitUpTracker = (keypoints, reps, setReps, phase, setPhase) => {
-  const CONFIDENCE_THRESHOLD = 0.7;
+  const CONFIDENCE_THRESHOLD = 0.5;
   const [lastShoulderY, setLastShoulderY] = useState(null);
 
   const getKeypoint = (name) => {
@@ -10,7 +10,8 @@ const SitUpTracker = (keypoints, reps, setReps, phase, setPhase) => {
   };
 
   useEffect(() => {
-    if (!keypoints?.length) return;
+    if (!keypoints?.length)
+      return(console.log("keypoints are null, line 14 situps tracker"));
 
     const leftShoulder = getKeypoint('left_shoulder');
     const rightShoulder = getKeypoint('right_shoulder');
@@ -28,7 +29,7 @@ const SitUpTracker = (keypoints, reps, setReps, phase, setPhase) => {
     setLastShoulderY(shoulderY);
 
     // Thresholds for detecting up and down phases
-    const VELOCITY_THRESHOLD = 2; // Adjust based on sensitivity
+    const VELOCITY_THRESHOLD = 0.5; // Adjust based on sensitivity
 
     if (phase === 'down' && velocity < -VELOCITY_THRESHOLD) {
       // Moving up

@@ -10,7 +10,8 @@ const PushUpsTracker = (keypoints, reps, setReps, phase, setPhase) => {
   };
 
   useEffect(() => {
-    if (!keypoints?.length) return;
+    if (!keypoints?.length)
+      return(console.log("keypoints are null, line 14 pushups tracker"));
 
     const leftShoulder = getKeypoint('left_shoulder');
     const rightShoulder = getKeypoint('right_shoulder');

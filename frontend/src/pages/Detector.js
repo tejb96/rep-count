@@ -6,7 +6,6 @@ import { resetRepCount, resetSelectedWorkout } from '../store/workoutSlice';
 import { requestCameraPermissions, setSelectedDeviceId, updateAvailableDevices } from '../store/cameraSlice';
 import KeypointDrawer from '../components/KeypointsDrawer';
 import { useNavigate } from 'react-router-dom';
-import Tracker from '../components/Tracker';
 import { setupPoseDetection } from '../config/PoseDetectionTensorflow';
 import DeadliftTracker from '../workoutsTrackers/DeadliftTracker';
 import SitUpTracker from "../workoutsTrackers/SitUpTracker";
@@ -22,9 +21,10 @@ const Detector = () => {
   // Redux state (only for camera and auth)
   const { devices, permissionStatus, error: cameraError, selectedDeviceId } =
       useSelector((state) => state.camera);
-  const { selectedWorkoutName } = useSelector((state) => state.workout);
+  const { selectedWorkoutName, selectedWorkoutID } = useSelector((state) => state.workout);
 
   // console.log(useSelector((state)=>state.camera));
+  // console.log(selectedWorkoutName, selectedWorkoutID);
 
   // Local state for pose detection and rep counting
   const [poseDetector, setPoseDetector] = useState(null);
@@ -67,11 +67,6 @@ const Detector = () => {
     }
   }, [poseDetector]);
 
-  // Pause pose detection
-  const pauseDetection = useCallback(() => {
-    setIsPoseDetectionActive(false);
-    setKeypoints([]); // Clear keypoints on pause
-  }, []);
 
   // Resume pose detection
   const resumeDetection = useCallback(async () => {
@@ -99,13 +94,14 @@ const Detector = () => {
 
   // Handle rep counting based on workout type
   useEffect(() => {
-    if (!isPoseDetectionActive || !keypoints.length) return;
+    if (!isPoseDetectionActive ) return;
 
-    switch (selectedWorkoutName) {
-      case 'situp':
+    switch (selectedWorkoutID) {
+      case 'SitUps':
         SitUpTracker(keypoints, reps, setReps, phase, setPhase);
+        // console.log("SitUpTracker called");
         break;
-      case 'pushup':
+      case 'PushUps':
         PushUpsTracker(keypoints, reps, setReps, phase, setPhase);
         break;
       case 'deadlift':
@@ -141,13 +137,14 @@ const Detector = () => {
     try {
       const newDeviceId = event.target.value;
 
-      // If pose detection is active, pause it before switching
+      // If pose detection is active, stop it before switching
       if (isPoseDetectionActive) {
-        pauseDetection();
+        setIsPoseDetectionActive(false);
         if (detectionRef.current) {
           cancelAnimationFrame(detectionRef.current);
           detectionRef.current = null;
         }
+        cleanup();
       }
 
       // Switch camera device
@@ -156,13 +153,10 @@ const Detector = () => {
       // Wait for video element to update with new device
       await new Promise((resolve) => setTimeout(resolve, 300));
 
-      // Cleanup and reinitialize with new camera
-      cleanup(); // Need to reinitialize with new camera
-      await resumeDetection();
-
       // Restart pose detection if it was active
       if (isPoseDetectionActive) {
-        await resumeDetection();
+        await initializePoseDetection();
+        setIsPoseDetectionActive(true);
       }
     } catch (error) {
       console.error('Error switching camera:', error);
@@ -185,11 +179,12 @@ const Detector = () => {
           return;
         }
 
-        // Start or resume pose detection
-        await resumeDetection();
+        // Initialize and start pose detection
+        await initializePoseDetection();
+        setIsPoseDetectionActive(true);
       } else {
-        // Pause pose detection
-        pauseDetection();
+        // Stop pose detection
+        setIsPoseDetectionActive(false);
         if (detectionRef.current) {
           cancelAnimationFrame(detectionRef.current);
           detectionRef.current = null;
@@ -198,10 +193,12 @@ const Detector = () => {
           const ctx = canvasRef.current.getContext('2d');
           ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
         }
+        cleanup();
       }
     } catch (error) {
       console.error('Error toggling pose detection:', error);
-      pauseDetection();
+      setIsPoseDetectionActive(false);
+      cleanup();
     }
   };
 
@@ -209,13 +206,12 @@ const Detector = () => {
   const reselectWorkout = () => {
     dispatch(resetSelectedWorkout());
     dispatch(resetRepCount());
-    if (isPoseDetectionActive) {
-      pauseDetection();
-      if (detectionRef.current) {
-        cancelAnimationFrame(detectionRef.current);
-        detectionRef.current = null;
-      }
+    setIsPoseDetectionActive(false);
+    if (detectionRef.current) {
+      cancelAnimationFrame(detectionRef.current);
+      detectionRef.current = null;
     }
+    cleanup();
     navigate('/workouts');
   };
 
@@ -342,7 +338,7 @@ const Detector = () => {
                     aspectRatio={aspectRatio}
                     setAspectRatio={setAspectRatio}
                 />
-                <Tracker isModelOn={isPoseDetectionActive} />
+
                 {/* Pose Detection Canvas */}
                 <canvas
                     ref={canvasRef}

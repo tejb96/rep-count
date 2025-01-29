@@ -12,6 +12,7 @@ import DeadliftTracker from '../workoutsTrackers/DeadliftTracker';
 import SitUpTracker from "../workoutsTrackers/SitUpTracker";
 import PushUpsTracker from "../workoutsTrackers/PushupsTracker";
 import CustomLayout from "../components/customLayout";
+import CameraFeed from "../components/CameraFeed";
 
 
 const Detector = () => {
@@ -335,23 +336,11 @@ const Detector = () => {
                   }}
               >
                 {/* Camera Feed */}
-                <Webcam
-                    ref={webcamRef}
-                    videoConstraints={{
-                      deviceId: selectedDeviceId,
-                      aspectRatio: aspectRatio, // Use dynamic aspect ratio
-                      facingMode: 'user',
-                    }}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      borderRadius: '8px',
-                    }}
-                    onLoadedMetadata={() => {
-                      const video = webcamRef.current.video;
-                      setAspectRatio(video.videoWidth / video.videoHeight);
-                    }}
+                <CameraFeed
+                    webcamRef={webcamRef}
+                    selectedDeviceId={selectedDeviceId}
+                    aspectRatio={aspectRatio}
+                    setAspectRatio={setAspectRatio}
                 />
                 <Tracker isModelOn={isPoseDetectionActive} />
                 {/* Pose Detection Canvas */}

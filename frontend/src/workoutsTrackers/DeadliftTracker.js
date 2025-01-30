@@ -48,19 +48,15 @@ const DeadliftTracker = (keypoints, reps, setReps, phase, setPhase) => {
   const isLeftWristBelowKnee = isLeftSideVisible && leftKnee && (leftWrist.y - leftKnee.y) > 0;
   const isRightWristBelowKnee = isRightSideVisible && rightKnee && (rightWrist.y - rightKnee.y) > 0;
 
-  // Check if wrists are close to hips (for up position)
-  const isLeftWristCloseToHip = isLeftSideVisible && leftHip && Math.abs(leftWrist.y - leftHip.y) < 0.1;
-  const isRightWristCloseToHip = isRightSideVisible && rightHip && Math.abs(rightWrist.y - rightHip.y) < 0.1;
-
   // Check if shoulders are far from knees (for up position)
-  const isLeftShoulderFarFromKnee = isLeftSideVisible && leftKnee && leftHip && Math.abs(leftHip.y - leftKnee.y) > 0.3;
-  const isRightShoulderFarFromKnee = isRightSideVisible && rightKnee && rightHip && Math.abs(rightHip.y - rightKnee.y) > 0.3;
+  const isUpLeft = isLeftSideVisible && leftWrist.y/leftHip.y>0.85;
+  const isUpRight = isRightSideVisible && rightWrist.y/rightHip.y>0.85;
 
   // Determine the phase based on the ratios and conditions
   if (phase === "Not visible" || phase === '') {
     if (
-        (isLeftSideVisible && leftWristAnkleRatio >= 0.8 && leftWristAnkleRatio <= 0.95 && isLeftWristBelowKnee) || // Left side is in down position
-        (isRightSideVisible && rightWristAnkleRatio >= 0.8 && rightWristAnkleRatio <= 0.95 && isRightWristBelowKnee) // Right side is in down position
+        (isLeftSideVisible && leftWristAnkleRatio >= 0.8 && isLeftWristBelowKnee) || // Left side is in down position
+        (isRightSideVisible && rightWristAnkleRatio >= 0.8 && isRightWristBelowKnee) // Right side is in down position
     ) {
       setPhase('down');
     }
@@ -68,10 +64,11 @@ const DeadliftTracker = (keypoints, reps, setReps, phase, setPhase) => {
 
   if (phase === 'down') {
     if (
-        (isLeftSideVisible && isLeftWristCloseToHip && isLeftShoulderFarFromKnee) || // Left side is in up position
-        (isRightSideVisible && isRightWristCloseToHip && isRightShoulderFarFromKnee) // Right side is in up position
+        (isLeftSideVisible  && isUpLeft) || // Left side is in up position
+        (isRightSideVisible && isUpRight) // Right side is in up position
     ) {
       setPhase('up');
+      setReps((prevReps) => prevReps + 1);
     }
   } else if (phase === 'up') {
     if (
@@ -79,7 +76,6 @@ const DeadliftTracker = (keypoints, reps, setReps, phase, setPhase) => {
         (isRightSideVisible && rightWristAnkleRatio >= 0.8 && rightWristAnkleRatio <= 0.95 && isRightWristBelowKnee) // Right side is in down position
     ) {
       setPhase('down');
-      setReps((prevReps) => prevReps + 1); // Increment rep count
     }
   }
 };

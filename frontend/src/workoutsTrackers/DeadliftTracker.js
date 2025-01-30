@@ -1,122 +1,87 @@
-import { useEffect, useRef } from 'react';
-import { getDistance } from '../utils/geometryUtils';
-
 const DeadliftTracker = (keypoints, reps, setReps, phase, setPhase) => {
-  const isTrackingStarted = useRef(false); // Track if lifter is in bottom position
-  const lastHipY = useRef(null);
-  const lastShoulderHipDistance = useRef(null);
-
-  const MOVEMENT_THRESHOLD = 0.1; // Adjusted for better sensitivity
-  const ALIGNMENT_THRESHOLD = 0.2; // Adjusted for better alignment detection
-  const WRIST_ANKLE_DISTANCE_THRESHOLD = 0.3; // Threshold for wrists and ankles being close
   const CONFIDENCE_THRESHOLD = 0.6;
+
+  console.log("DeadliftTracker called");
 
   const getKeypoint = (name) => {
     const keypoint = keypoints?.find(kp => kp.name === name);
     return keypoint?.score >= CONFIDENCE_THRESHOLD ? keypoint : null;
   };
 
-  const checkDeadliftForm = (keypoints) => {
-    const leftShoulder = getKeypoint('left_shoulder');
-    const leftHip = getKeypoint('left_hip');
-    const leftKnee = getKeypoint('left_knee');
-    const leftAnkle = getKeypoint('left_ankle');
+  if (!keypoints?.length) {
+    console.log("Keypoints are null or empty.");
+    return;
+  }
 
-    const rightShoulder = getKeypoint('right_shoulder');
-    const rightHip = getKeypoint('right_hip');
-    const rightKnee = getKeypoint('right_knee');
-    const rightAnkle = getKeypoint('right_ankle');
+  const leftWrist = getKeypoint('left_wrist');
+  const rightWrist = getKeypoint('right_wrist');
+  const leftAnkle = getKeypoint('left_ankle');
+  const rightAnkle = getKeypoint('right_ankle');
+  const leftKnee = getKeypoint('left_knee');
+  const rightKnee = getKeypoint('right_knee');
+  const leftHip = getKeypoint('left_hip');
+  const rightHip = getKeypoint('right_hip');
 
-    // Use the side with higher confidence
-    const leftConfidence = (leftShoulder?.score || 0) + (leftHip?.score || 0) + (leftKnee?.score || 0) + (leftAnkle?.score || 0);
-    const rightConfidence = (rightShoulder?.score || 0) + (rightHip?.score || 0) + (rightKnee?.score || 0) + (rightAnkle?.score || 0);
+  console.log(leftWrist, rightWrist, leftAnkle, rightAnkle, leftKnee, rightKnee, leftHip, rightHip);
 
-    const side = leftConfidence > rightConfidence ? 'left' : 'right';
+  // Check if at least one side is visible for wrists and ankles
+  const isLeftSideVisible = leftWrist && leftAnkle;
+  const isRightSideVisible = rightWrist && rightAnkle;
 
-    const shoulder = getKeypoint(`${side}_shoulder`);
-    const hip = getKeypoint(`${side}_hip`);
-    const knee = getKeypoint(`${side}_knee`);
-    const ankle = getKeypoint(`${side}_ankle`);
+  if (!isLeftSideVisible && !isRightSideVisible) {
+    setPhase("Not visible");
+    return;
+  }
 
-    if (!shoulder || !hip || !knee || !ankle) return false;
+  // Calculate ratios for visible sides
+  let leftWristAnkleRatio, rightWristAnkleRatio;
+  if (isLeftSideVisible) {
+    leftWristAnkleRatio = leftWrist.y / leftAnkle.y;
+    console.log(`Left Wrist/Ankle Ratio: ${leftWristAnkleRatio}`);
+  }
+  if (isRightSideVisible) {
+    rightWristAnkleRatio = rightWrist.y / rightAnkle.y;
+    console.log(`Right Wrist/Ankle Ratio: ${rightWristAnkleRatio}`);
+  }
 
-    // Calculate vertical alignment of shoulder, hip, knee, and ankle
-    const shoulderHipDistance = Math.abs(shoulder.y - hip.y);
-    const hipKneeDistance = Math.abs(hip.y - knee.y);
-    const kneeAnkleDistance = Math.abs(knee.y - ankle.y);
+  // Check if wrists are below knees (for down position)
+  const isLeftWristBelowKnee = isLeftSideVisible && leftKnee && (leftWrist.y - leftKnee.y) > 0;
+  const isRightWristBelowKnee = isRightSideVisible && rightKnee && (rightWrist.y - rightKnee.y) > 0;
 
-    // Check if the lifter is in a proper lockout position
-    const isLockedOut = shoulderHipDistance < ALIGNMENT_THRESHOLD && hipKneeDistance < ALIGNMENT_THRESHOLD && kneeAnkleDistance < ALIGNMENT_THRESHOLD;
+  // Check if wrists are close to hips (for up position)
+  const isLeftWristCloseToHip = isLeftSideVisible && leftHip && Math.abs(leftWrist.y - leftHip.y) < 0.1;
+  const isRightWristCloseToHip = isRightSideVisible && rightHip && Math.abs(rightWrist.y - rightHip.y) < 0.1;
 
-    // Check symmetry (optional, if both sides are visible)
-    if (leftShoulder && rightShoulder && leftHip && rightHip) {
-      const shoulderSymmetry = Math.abs(leftShoulder.y - rightShoulder.y) < ALIGNMENT_THRESHOLD;
-      const hipSymmetry = Math.abs(leftHip.y - rightHip.y) < ALIGNMENT_THRESHOLD;
-      if (!shoulderSymmetry || !hipSymmetry) return false;
+  // Check if shoulders are far from knees (for up position)
+  const isLeftShoulderFarFromKnee = isLeftSideVisible && leftKnee && leftHip && Math.abs(leftHip.y - leftKnee.y) > 0.3;
+  const isRightShoulderFarFromKnee = isRightSideVisible && rightKnee && rightHip && Math.abs(rightHip.y - rightKnee.y) > 0.3;
+
+  // Determine the phase based on the ratios and conditions
+  if (phase === "Not visible" || phase === '') {
+    if (
+        (isLeftSideVisible && leftWristAnkleRatio >= 0.8 && leftWristAnkleRatio <= 0.95 && isLeftWristBelowKnee) || // Left side is in down position
+        (isRightSideVisible && rightWristAnkleRatio >= 0.8 && rightWristAnkleRatio <= 0.95 && isRightWristBelowKnee) // Right side is in down position
+    ) {
+      setPhase('down');
     }
+  }
 
-    return isLockedOut;
-  };
-
-  const checkBottomPhase = (keypoints) => {
-    const leftWrist = getKeypoint('left_wrist');
-    const leftAnkle = getKeypoint('left_ankle');
-    const rightWrist = getKeypoint('right_wrist');
-    const rightAnkle = getKeypoint('right_ankle');
-
-    // Use the side with higher confidence
-    const leftConfidence = (leftWrist?.score || 0) + (leftAnkle?.score || 0);
-    const rightConfidence = (rightWrist?.score || 0) + (rightAnkle?.score || 0);
-
-    const side = leftConfidence > rightConfidence ? 'left' : 'right';
-
-    const wrist = getKeypoint(`${side}_wrist`);
-    const ankle = getKeypoint(`${side}_ankle`);
-
-    if (!wrist || !ankle) return false;
-
-    // Check if wrists and ankles are close (bar is on the ground)
-    const wristAnkleDistance = getDistance(wrist, ankle);
-    return wristAnkleDistance < WRIST_ANKLE_DISTANCE_THRESHOLD;
-  };
-
-  useEffect(() => {
-    if (!keypoints?.length) return;
-
-    const hip = getKeypoint('left_hip') || getKeypoint('right_hip');
-    if (!hip || hip.score < CONFIDENCE_THRESHOLD) return;
-
-    if (lastHipY.current === null) {
-      lastHipY.current = hip.y;
-      return;
+  if (phase === 'down') {
+    if (
+        (isLeftSideVisible && isLeftWristCloseToHip && isLeftShoulderFarFromKnee) || // Left side is in up position
+        (isRightSideVisible && isRightWristCloseToHip && isRightShoulderFarFromKnee) // Right side is in up position
+    ) {
+      setPhase('up');
     }
-
-    const deltaY = hip.y - lastHipY.current;
-    lastHipY.current = hip.y;
-
-    // Check if the lifter is in the bottom position for the first time
-    if (!isTrackingStarted.current && checkBottomPhase(keypoints)) {
-      isTrackingStarted.current = true; // Start tracking
-      setPhase('bottom'); // Move to the bottom phase
-      return;
-    }
-
-    // Only proceed with tracking if the lifter is confirmed to be in the bottom position
-    if (!isTrackingStarted.current) return;
-
-    if (phase === 'bottom' && deltaY < -MOVEMENT_THRESHOLD) {
-      setPhase('lifting');
-    } else if (phase === 'lifting' && checkDeadliftForm(keypoints)) {
-      setPhase('lockout');
-    } else if (phase === 'lockout' && deltaY > MOVEMENT_THRESHOLD) {
-      setPhase('dropping');
-    } else if (phase === 'dropping' && checkBottomPhase(keypoints)) {
-      setPhase('bottom');
+  } else if (phase === 'up') {
+    if (
+        (isLeftSideVisible && leftWristAnkleRatio >= 0.8 && leftWristAnkleRatio <= 0.95 && isLeftWristBelowKnee) || // Left side is in down position
+        (isRightSideVisible && rightWristAnkleRatio >= 0.8 && rightWristAnkleRatio <= 0.95 && isRightWristBelowKnee) // Right side is in down position
+    ) {
+      setPhase('down');
       setReps((prevReps) => prevReps + 1); // Increment rep count
     }
-  }, [keypoints, phase, setPhase, setReps]);
-
-  return null;
+  }
 };
 
 export default DeadliftTracker;

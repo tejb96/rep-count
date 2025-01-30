@@ -20,51 +20,58 @@ const SitUpTracker = (keypoints, reps, setReps, phase, setPhase) => {
 
   console.log(leftShoulder, rightShoulder, leftHip, rightHip);
 
-  // Check for missing keypoints and set phase to a message
-  if (!leftShoulder) {
-    setPhase("Left shoulder not visible");
-    return;
-  }
-  if (!rightShoulder) {
-    setPhase("Right shoulder not visible");
-    return;
-  }
-  if (!leftHip) {
-    setPhase("Left hip not visible");
-    return;
-  }
-  if (!rightHip) {
-    setPhase("Right hip not visible");
+  // Check if at least one side is fully visible
+  const isLeftSideVisible = leftShoulder && leftHip;
+  const isRightSideVisible = rightShoulder && rightHip;
+
+  if (!isLeftSideVisible && !isRightSideVisible) {
+    setPhase("Not visible");
     return;
   }
 
-  // Calculate shoulder-to-hip distances for left and right sides
-  const leftDistance = Math.sqrt(
-      Math.pow(leftShoulder.x - leftHip.x, 2) + Math.pow(leftShoulder.y - leftHip.y, 2)
-  );
-  const rightDistance = Math.sqrt(
-      Math.pow(rightShoulder.x - rightHip.x, 2) + Math.pow(rightShoulder.y - rightHip.y, 2)
-  );
+  // Calculate ratios for visible sides
+  let leftRatio, rightRatio;
+  if (isLeftSideVisible) {
+    leftRatio = leftShoulder.y/leftHip.y;
+    console.log(`Left Ratio: ${leftRatio}`);
+  }
+  if (isRightSideVisible) {
+    rightRatio = rightShoulder.y/rightHip.y;
+    console.log(`Right Ratio: ${rightRatio}`);
+  }
 
-  // Average shoulder-to-hip distance
-  const avgDistance = (leftDistance + rightDistance) / 2;
+  if(phase==="Not visible"|| phase===''){
+    if (
+        (isLeftSideVisible && leftRatio < 0.3) || // Left side is in up position
+        (isRightSideVisible && rightRatio < 0.3) // Right side is in up position
+    ) {
+      setPhase('up');
+    }
 
-  // Thresholds for detecting positions
-  const UP_THRESHOLD = 0.5; // User is upright when shoulder-to-hip distance is close to initial distance
-  const DOWN_THRESHOLD = 0.5; // User is down when shoulder-to-hip distance is larger than initial distance
+    else if (
+        (isLeftSideVisible && leftRatio > 0.7) || // Left side is in down position
+        (isRightSideVisible && rightRatio > 0.7) // Right side is in down position
+    ) {
+      setPhase('down');
+    }
+  }
 
-  // Detect phase based on position
-  if (
-      phase === 'down' &&
-      (leftDistance < UP_THRESHOLD || rightDistance < UP_THRESHOLD) // Either side is upright
-  ) {
-    setPhase('up');
-  } else if (
-      phase === 'up' &&
-      (leftDistance > DOWN_THRESHOLD || rightDistance > DOWN_THRESHOLD) // Either side is down
-  ) {
-    setPhase('down');
-    setReps((prevReps) => prevReps + 1);
+  // Determine the phase based on the ratios
+  if (phase === 'down') {
+    if (
+        (isLeftSideVisible && leftRatio < 0.3) || // Left side is in up position
+        (isRightSideVisible && rightRatio < 0.3) // Right side is in up position
+    ) {
+      setPhase('up');
+    }
+  } else if (phase === 'up') {
+    if (
+        (isLeftSideVisible && leftRatio > 0.7) || // Left side is in down position
+        (isRightSideVisible && rightRatio > 0.7) // Right side is in down position
+    ) {
+      setPhase('down');
+      setReps((prevReps) => prevReps + 1);
+    }
   }
 };
 

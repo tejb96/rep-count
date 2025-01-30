@@ -32,21 +32,16 @@ const PushUpsTracker = (keypoints, reps, setReps, phase, setPhase) => {
   // Calculate ratios for visible sides
   let leftRatio, rightRatio;
   if (isLeftSideVisible) {
-    leftRatio = leftWrist.y / leftShoulder.y;
+    leftRatio = leftShoulder.y / leftWrist.y;
     console.log(`Left Ratio: ${leftRatio}`);
   }
   if (isRightSideVisible) {
-    rightRatio = rightWrist.y / rightShoulder.y;
+    rightRatio = rightShoulder.y / rightWrist.y;
     console.log(`Right Ratio: ${rightRatio}`);
   }
 
   if (phase === "Not visible" || phase === '') {
     if (
-        (isLeftSideVisible && leftRatio < 0.3) || // Left side is in up position
-        (isRightSideVisible && rightRatio < 0.3) // Right side is in up position
-    ) {
-      setPhase('up');
-    } else if (
         (isLeftSideVisible && leftRatio > 0.7) || // Left side is in down position
         (isRightSideVisible && rightRatio > 0.7) // Right side is in down position
     ) {
@@ -61,6 +56,7 @@ const PushUpsTracker = (keypoints, reps, setReps, phase, setPhase) => {
         (isRightSideVisible && rightRatio < 0.3) // Right side is in up position
     ) {
       setPhase('up');
+      setReps((prevReps) => prevReps + 1);
     }
   } else if (phase === 'up') {
     if (
@@ -68,7 +64,6 @@ const PushUpsTracker = (keypoints, reps, setReps, phase, setPhase) => {
         (isRightSideVisible && rightRatio > 0.7) // Right side is in down position
     ) {
       setPhase('down');
-      setReps((prevReps) => prevReps + 1);
     }
   }
 };

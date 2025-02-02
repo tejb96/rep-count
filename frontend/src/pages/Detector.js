@@ -37,6 +37,7 @@ const Detector = () => {
   const [phase, setPhase] = useState(''); // Local state for workout phase
   const [aspectRatio, setAspectRatio] = useState(4 / 3);
   const [shouldSaveWorkout, setShouldSaveWorkout] = useState(false);
+  const [lastPose, setLastPose] = useState([]);
 
   // Refs
   const webcamRef = useRef(null);
@@ -100,11 +101,11 @@ const Detector = () => {
 
     switch (selectedWorkoutID) {
       case 'SitUps':
-        SitUpTracker(keypoints, reps, setReps, phase, setPhase);
+        SitUpTracker(keypoints, reps, setReps, phase, setPhase, lastPose, setLastPose);
         // console.log("SitUpTracker called");
         break;
       case 'PushUps':
-        PushUpsTracker(keypoints, reps, setReps, phase, setPhase);
+        PushUpsTracker(keypoints, reps, setReps, phase, setPhase, lastPose,setLastPose);
         break;
       case 'deadlift':
         DeadliftTracker(keypoints, reps, setReps, phase, setPhase);

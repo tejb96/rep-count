@@ -1,6 +1,5 @@
-const PushUpsTracker = (keypoints, reps, setReps, phase, setPhase, lastPose, setLastPose) => {
+const PushUpsTracker = (keypoints, reps, setReps, phase, setPhase) => {
   const CONFIDENCE_THRESHOLD = 0.5;
-  const VELOCITY_THRESHOLD = 0.0; // Adjust based on your needs
 
   console.log("PushUpsTracker called");
 
@@ -41,28 +40,6 @@ const PushUpsTracker = (keypoints, reps, setReps, phase, setPhase, lastPose, set
     console.log(`Right Ratio: ${rightRatio}`);
   }
 
-  // Calculate velocity if lastPose is available
-  let velocity = 0;
-  if (lastPose.leftShoulderY && isLeftSideVisible) {
-    const currentY = leftShoulder.y;
-    const lastY = lastPose.leftShoulderY;
-    velocity = currentY - lastY;
-    console.log(`Left Shoulder Velocity: ${velocity}`);
-  }
-  if (lastPose.rightShoulderY && isRightSideVisible) {
-    const currentY = rightShoulder.y;
-    const lastY = lastPose.rightShoulderY;
-    velocity = currentY - lastY;
-    console.log(`Right Shoulder Velocity: ${velocity}`);
-  }
-
-  // Update lastPose with the current shoulder positions
-  if (isLeftSideVisible) {
-    setLastPose({ leftShoulderY: leftShoulder.y });
-  } else if (isRightSideVisible) {
-    setLastPose({ rightShoulderY: rightShoulder.y });
-  }
-
   if (phase === "Not visible" || phase === '') {
     if (
         (isLeftSideVisible && leftRatio > 0.7) || // Left side is in down position
@@ -72,25 +49,21 @@ const PushUpsTracker = (keypoints, reps, setReps, phase, setPhase, lastPose, set
     }
   }
 
-  // Determine the phase based on the ratios and velocity
+  // Determine the phase based on the ratios
   if (phase === 'down') {
     if (
-        (isLeftSideVisible && leftRatio < 0.4) || // Left side is in up position
-        (isRightSideVisible && rightRatio < 0.4) // Right side is in up position
+        (isLeftSideVisible && leftRatio < 0.3) || // Left side is in up position
+        (isRightSideVisible && rightRatio < 0.3) // Right side is in up position
     ) {
-      if (velocity < VELOCITY_THRESHOLD) { // Shoulders are moving upward
-        setPhase('up');
-        setReps((prevReps) => prevReps + 1);
-      }
+      setPhase('up');
+      setReps((prevReps) => prevReps + 1);
     }
   } else if (phase === 'up') {
     if (
-        (isLeftSideVisible && leftRatio > 0.6) || // Left side is in down position
-        (isRightSideVisible && rightRatio > 0.6) // Right side is in down position
+        (isLeftSideVisible && leftRatio > 0.7) || // Left side is in down position
+        (isRightSideVisible && rightRatio > 0.7) // Right side is in down position
     ) {
-      if (velocity > VELOCITY_THRESHOLD) { // Shoulders are moving downward
-        setPhase('down');
-      }
+      setPhase('down');
     }
   }
 };

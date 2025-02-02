@@ -1,12 +1,12 @@
 import React from 'react';
-import { Typography, Link as Ln} from '@mui/material';
+import { Typography, Link as MuiLink } from '@mui/material';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import CustomLayout from '../components/customLayout';
-import { Link } from 'react-router-dom';
-import { useSelector} from "react-redux";
+import { Link as RouterLink } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 const HomePage = () => {
-    const { isAuthenticated }= useSelector((state) => state.auth);
+    const { isAuthenticated } = useSelector((state) => state.auth);
 
     return (
         <CustomLayout>
@@ -36,11 +36,39 @@ const HomePage = () => {
             </Typography>
             {isAuthenticated ? (
                 <Typography variant="h6" component="p" sx={{ mt: 2, color: 'text.secondary' }}>
-                    Select a workout to get started: <Ln><Link to="/workouts" sx={{ textDecoration: 'underline', color:900 }}>Select workout</Link></Ln>
+                    Select a workout to get started:{" "}
+                    <MuiLink
+                        component={RouterLink}
+                        to="/workouts"
+                        sx={{
+                            color: 'primary.main',
+                            textDecoration: 'underline',
+                            '&:hover': {
+                                color: 'secondary.main',
+                                textDecoration: 'none',
+                            },
+                        }}
+                    >
+                        Select workout
+                    </MuiLink>
                 </Typography>
-            ) :(
+            ) : (
                 <Typography variant="h6" component="p" sx={{ mt: 2, color: 'text.secondary' }}>
-                    Not ready to sign up? No problem! You can check out the Workout Tracker without signing in by following this link: <Ln><Link to="/workouts" sx={{ textDecoration: 'underline', color:900 }}>Select workout</Link></Ln>
+                    Not ready to sign up? No problem! You can check out the Workout Tracker without signing in by following this link:{" "}
+                    <MuiLink
+                        component={RouterLink}
+                        to="/workouts"
+                        sx={{
+                            color: 'primary.main',
+                            textDecoration: 'underline',
+                            '&:hover': {
+                                color: 'secondary.main',
+                                textDecoration: 'none',
+                            },
+                        }}
+                    >
+                        Select workout
+                    </MuiLink>
                 </Typography>
             )}
         </CustomLayout>

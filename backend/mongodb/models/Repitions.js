@@ -12,30 +12,22 @@ const repetitionSchema = new Schema(
         type: {
             type: String,
             required: true,
-            enum: ['pushup', 'squat', 'pullup', 'situp'], // Example workout types
+            enum: ['PushUps', 'squat', 'pullup', 'SitUps', 'deadlift'], // Added 'deadlift'
         },
         repetitions: {
             type: Number,
             required: true,
             min: [1, 'Repetitions must be at least 1'],
         },
-        duration: {
-            type: Number,
-            required: [true, 'Workout duration is required'],
-            min: [1, 'Duration must be at least 1 minute'],
-        },
         date: {
             type: Date,
             required: true,
-        },
-        workoutSession: {
-            type: Schema.Types.ObjectId, // Group repetitions into sessions
-            ref: 'WorkoutSession',
+            default: Date.now, // Automatically set to the current date/time
         },
     },
-    { timestamps: true }
+    { timestamps: true } // Adds createdAt and updatedAt fields
 );
 
-const Repetition = mongoose.model('Repetition', repitionSchema);
+const Repetition = mongoose.model('Repetition', repetitionSchema);
 
 export default Repetition;

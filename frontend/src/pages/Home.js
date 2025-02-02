@@ -3,8 +3,11 @@ import { Typography, Link as Ln} from '@mui/material';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import CustomLayout from '../components/customLayout';
 import { Link } from 'react-router-dom';
+import { useSelector} from "react-redux";
 
 const HomePage = () => {
+    const { isAuthenticated }= useSelector((state) => state.auth);
+
     return (
         <CustomLayout>
             <Typography
@@ -31,9 +34,15 @@ const HomePage = () => {
             <Typography variant="h6" component="p" sx={{ mt: 2, color: 'text.secondary' }}>
                 Ready to elevate your fitness journey? Sign up effortlessly by logging in with your Google account. This way, your progress and workout history are securely saved, allowing you to track how many reps you’ve done and when.
             </Typography>
-            <Typography variant="h6" component="p" sx={{ mt: 2, color: 'text.secondary' }}>
-                Not ready to sign up? No problem! You can check out the Workout Tracker without signing in by following this link: <Ln><Link to="/workouts" sx={{ textDecoration: 'underline' }}>Select workout</Link></Ln>
-            </Typography>
+            {isAuthenticated ? (
+                <Typography variant="h6" component="p" sx={{ mt: 2, color: 'text.secondary' }}>
+                    Select a workout to get started: <Ln><Link to="/workouts" sx={{ textDecoration: 'underline', color:900 }}>Select workout</Link></Ln>
+                </Typography>
+            ) :(
+                <Typography variant="h6" component="p" sx={{ mt: 2, color: 'text.secondary' }}>
+                    Not ready to sign up? No problem! You can check out the Workout Tracker without signing in by following this link: <Ln><Link to="/workouts" sx={{ textDecoration: 'underline', color:900 }}>Select workout</Link></Ln>
+                </Typography>
+            )}
         </CustomLayout>
     );
 };

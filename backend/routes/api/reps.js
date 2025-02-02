@@ -1,27 +1,28 @@
 import express from 'express';
-import Repetition from '../../models/Repetition.js'; // Adjust path if your models folder is different
-import User from '../../models/User.js'; // Adjust path if your models folder is different
+import Repetition from '../../mongodb/models/Repitions.js'; // Adjust path if your models folder is different
+
 
 const router = express.Router();
 
 // Create a new repetition
 router.post('/', async (req, res) => {
     try {
-        const { user, type, repetitions, duration, startDate, endDate } = req.body;
+        const { user, type, repetitions, date } = req.body;
 
-        if (!user || !type || !repetitions || !duration || !startDate) {
+        // Validate required fields
+        if (!user || !type || !repetitions || !date) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
+        // Create a new repetition object
         const newRepetition = new Repetition({
             user,
             type,
             repetitions,
-            duration,
-            startDate,
-            endDate,
+            date,
         });
 
+        // Save the repetition to the database
         const savedRepetition = await newRepetition.save();
         res.status(201).json(savedRepetition);
     } catch (error) {

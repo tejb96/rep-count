@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box, Button, FormControl, Select, MenuItem, Typography } from '@mui/material';
-import Webcam from 'react-webcam';
 import { resetRepCount, resetSelectedWorkout } from '../store/workoutSlice';
 import { requestCameraPermissions, setSelectedDeviceId, updateAvailableDevices } from '../store/cameraSlice';
 import KeypointDrawer from '../components/KeypointsDrawer';
@@ -12,6 +11,7 @@ import SitUpTracker from "../workoutsTrackers/SitUpTracker";
 import PushUpsTracker from "../workoutsTrackers/PushupsTracker";
 import CustomLayout from "../components/customLayout";
 import CameraFeed from "../components/CameraFeed";
+import SaveWorkoutData from '../components/SaveWorkoutData';
 
 
 const Detector = () => {
@@ -22,6 +22,7 @@ const Detector = () => {
   const { devices, permissionStatus, error: cameraError, selectedDeviceId } =
       useSelector((state) => state.camera);
   const { selectedWorkoutName, selectedWorkoutID } = useSelector((state) => state.workout);
+  const { isAuthenticated } = useSelector((state) => state.auth);
 
   // console.log(useSelector((state)=>state.camera));
   // console.log(selectedWorkoutName, selectedWorkoutID);
@@ -35,6 +36,7 @@ const Detector = () => {
   const [reps, setReps] = useState(0); // Local state for rep count
   const [phase, setPhase] = useState(''); // Local state for workout phase
   const [aspectRatio, setAspectRatio] = useState(4 / 3);
+  const [shouldSaveWorkout, setShouldSaveWorkout] = useState(false);
 
   // Refs
   const webcamRef = useRef(null);
@@ -193,6 +195,7 @@ const Detector = () => {
           const ctx = canvasRef.current.getContext('2d');
           ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
         }
+        setShouldSaveWorkout(true);
         cleanup();
       }
     } catch (error) {
@@ -210,6 +213,9 @@ const Detector = () => {
     if (detectionRef.current) {
       cancelAnimationFrame(detectionRef.current);
       detectionRef.current = null;
+    }
+    if(reps>0){
+      setShouldSaveWorkout(true);
     }
     cleanup();
     navigate('/workouts');
@@ -280,6 +286,7 @@ const Detector = () => {
         cancelAnimationFrame(detectionRef.current);
         detectionRef.current = null;
       }
+      setShouldSaveWorkout(true);
       cleanup();
     };
   }, [cleanup]);
@@ -458,6 +465,14 @@ const Detector = () => {
                 No video devices found.
               </Typography>
             </Box>
+        )}
+
+        {shouldSaveWorkout && isAuthenticated && (
+            <SaveWorkoutData
+                workoutName={selectedWorkoutID}
+                reps={reps}
+                onSaveComplete={() => setShouldSaveWorkout(false)}
+            />
         )}
       </CustomLayout>
   );

@@ -18,7 +18,7 @@ const SaveWorkoutData = ({ workoutID, reps, onSaveComplete }) => {
                         date: new Date(),
                     };
 
-                    await axios.post('/api/reps', workoutData);
+                    await axios.post('/api/reps/addSet', workoutData);
                     console.log('Workout data saved successfully');
                     if (onSaveComplete) {
                         onSaveComplete();

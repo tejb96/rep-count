@@ -83,6 +83,7 @@ const Detector = () => {
   const cleanup = useCallback(() => {
     if (poseDetector) {
       poseDetector.dispose();
+      setIsPoseDetectionActive(false);
       setPoseDetector(null);
       setKeypoints([]); // Clear keypoints on cleanup
       setError(null);

@@ -81,10 +81,10 @@ const SitUpTracker = (keypoints, reps, setReps, phase, setPhase, lastPose, setLa
   // Determine the phase based on the ratios and velocity
   if (phase === 'down') {
     if (
-        (isLeftSideVisible && leftRatio < 0.4) || // Left side is in up position
-        (isRightSideVisible && rightRatio < 0.4) // Right side is in up position
+        (isLeftSideVisible && leftRatio < 0.5) || // Left side is in up position
+        (isRightSideVisible && rightRatio < 0.5) // Right side is in up position
     ) {
-      if (velocity > VELOCITY_THRESHOLD) {
+      if (velocity < VELOCITY_THRESHOLD) {
         setPhase('up');
       }
     }
@@ -93,7 +93,7 @@ const SitUpTracker = (keypoints, reps, setReps, phase, setPhase, lastPose, setLa
         (isLeftSideVisible && leftRatio > 0.6) || // Left side is in down position
         (isRightSideVisible && rightRatio > 0.6) // Right side is in down position
     ) {
-      if (velocity < VELOCITY_THRESHOLD) {
+      if (velocity > VELOCITY_THRESHOLD) {
         setPhase('down');
         setReps((prevReps) => prevReps + 1);
       }

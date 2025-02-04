@@ -5,7 +5,7 @@ import Repetition from '../../mongodb/models/Repitions.js'; // Adjust path if yo
 const router = express.Router();
 
 // Create a new repetition
-router.post('/', async (req, res) => {
+router.post('/addSet', async (req, res) => {
     try {
         const { user, type, repetitions, date } = req.body;
 

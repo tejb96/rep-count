@@ -47,7 +47,7 @@ const Navbar = ({ children }) => {
         palette: {
             mode: 'light',
             background: {
-                default: '#f5f5f5',
+                default: '#E0E0E0',
                 paper: '#ffffff',
             },
             text: {
@@ -73,13 +73,13 @@ const Navbar = ({ children }) => {
                 <AppBar
                     position="static"
                     sx={{
-                        backgroundColor: theme === 'dark' ? 'darkblue' : '#0077BE',
+                        backgroundColor: '#0077BE',
                         paddingLeft: '30px',
                         paddingRight: '10px',
-                        height: '60px',
+                        // height: '60px',
                     }}
                 >
-                    <Toolbar sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Toolbar sx={{ display: 'flex', alignItems: 'center'  }} disableGutters>
                         <Typography
                             variant="h6"
                             sx={{
@@ -92,8 +92,7 @@ const Navbar = ({ children }) => {
                                 letterSpacing: 1.5,
                             }}
                         >
-                            <img src="/logo.jpg" alt="Logo" style={{ height: '40px', marginRight: '10px' }} />
-                            Workout Tracker
+                            <img src="/logo.jpg" alt="Logo" style={{ height: '60px', marginRight: '10px' }} />
                         </Typography>
 
                         <div style={{ flex: 1 }} />

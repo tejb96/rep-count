@@ -1,6 +1,6 @@
 import React from 'react';
 import { Typography, Link as MuiLink } from '@mui/material';
-import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
+
 import CustomLayout from '../components/customLayout';
 import { Link as RouterLink } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -16,24 +16,25 @@ const HomePage = () => {
                 gutterBottom
                 sx={{
                     fontWeight: 'bold',
-                    color: 'primary.main',
+                    color: '#0077BE',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                 }}
             >
-                <FitnessCenterIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
-                Welcome to Your Ultimate Workout Companion
+                {/*<img src="/logo.jpg" alt="Logo" style={{ height: '100px', marginRight: '10px' }} />*/}
+                Welcome to RepVision
             </Typography>
             <Typography variant="h6" component="p" sx={{ mt: 2, color: 'text.secondary' }}>
-                Imagine a personal coach that not only guides your workouts but also tracks your progress effortlessly. Our app uses cutting-edge technology to monitor your movements through your camera, helping you perfect your form and count your reps accurately.
+                RepVision serves as your ultimate workout companion, utilizing advanced technology to monitor your movements through your camera. This feature assists in perfecting your form and accurately counting your repetitions.
             </Typography>
             <Typography variant="h6" component="p" sx={{ mt: 2, color: 'text.secondary' }}>
-                Whether you're a fitness enthusiast or just starting, this tracker adapts to your needs, providing insightful feedback and keeping you motivated.
+                By logging in with your Google account, your progress and workout history are securely saved, allowing you to track the number of reps you've completed and when. If you prefer not to sign up, you can still explore the Workout Tracker; however, your session data will not be stored.
             </Typography>
             <Typography variant="h6" component="p" sx={{ mt: 2, color: 'text.secondary' }}>
-                Ready to elevate your fitness journey? Sign up effortlessly by logging in with your Google account. This way, your progress and workout history are securely saved, allowing you to track how many reps you’ve done and when.
+                Please note that the app is a work in progress, with plans to add more workouts, timing features, and real-time feedback to enhance your fitness journey.
             </Typography>
+
             {isAuthenticated ? (
                 <Typography variant="h6" component="p" sx={{ mt: 2, color: 'text.secondary' }}>
                     Select a workout to get started:{" "}
@@ -71,6 +72,11 @@ const HomePage = () => {
                     </MuiLink>
                 </Typography>
             )}
+
+            <Typography variant="body2" component="p" sx={{ mt: 4, color: 'text.secondary', textAlign: 'center' }}>
+                **Disclaimer**: RepVision is intended for informational and educational purposes only. Always consult with a qualified healthcare professional before starting any new exercise program. By using this app, you acknowledge that you are participating in physical activities at your own risk. The developers of RepVision are not responsible for any injuries or damages that may occur as a result of using this app.
+            </Typography>
+
         </CustomLayout>
     );
 };

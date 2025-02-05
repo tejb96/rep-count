@@ -27,7 +27,7 @@ const Login = () => {
                     <img src="/logo.jpg" alt="Logo" style={{ height: '200px', marginRight: '10px' }} />
                 </Box>
                 <Typography variant="body1" sx={{ mt: 2, color: 'text.secondary' }}>
-                    Use your Google account to sign up or log in. If you don't have an account with us yet, one will be created for you.
+                    Use your Google account to sign up or log in.
                 </Typography>
 
                 <Box mt={4}>
@@ -37,7 +37,7 @@ const Login = () => {
                         startIcon={<GoogleIcon />}
                         href={GOOGLE_AUTH_LINK}
                         sx={{
-                            backgroundColor: '#4285F4',
+                            backgroundColor: '#0077BE',
                             '&:hover': { backgroundColor: '#357ae8' },
                             fontSize: '16px',
                             padding: '12px 24px',

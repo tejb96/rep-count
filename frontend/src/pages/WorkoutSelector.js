@@ -15,23 +15,21 @@ import { useNavigate } from 'react-router-dom';
 
 const WorkoutSelector = () => {
   const workouts = [
-    {
-      id: 'deadlift',
-      name: 'Conventional Deadlift',
-      description: 'Track form and count reps for conventional deadlifts',
-      icon: <FitnessCenterIcon sx={{ fontSize: 40 }} />,
-    },
+    // {
+    //   id: 'deadlift',
+    //   name: 'Conventional Deadlift',
+    //   description: 'Track form and count reps for conventional deadlifts',
+    //   icon: <FitnessCenterIcon sx={{ fontSize: 40 }} />,
+    // },
     {
       id: 'PushUps',
       name: 'Push Ups',
-      description: 'Count reps for push ups',
-      icon: <FitnessCenterIcon sx={{ fontSize: 40 }} />,
+      description: 'Count the number of push ups',
     },
     {
       id: 'SitUps',
       name: 'Sit Ups',
-      description: 'Count reps for sit ups',
-      icon: <FitnessCenterIcon sx={{ fontSize: 40 }} />,
+      description: 'Count sit ups',
     },
   ];
 

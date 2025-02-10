@@ -22,7 +22,7 @@ const Navbar = ({ children }) => {
     // console.log(auth.me.avatar, "navbar line 22");
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    console.log(auth);
+    // console.log(auth);
     const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
 
     useEffect(() => {

@@ -1,11 +1,11 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { Box, Button, FormControl, Select, MenuItem, Typography } from '@mui/material';
-import { resetRepCount, resetSelectedWorkout } from '../store/workoutSlice';
-import { requestCameraPermissions, setSelectedDeviceId, updateAvailableDevices } from '../store/cameraSlice';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
+import {Box, Button, FormControl, MenuItem, Select, Typography} from '@mui/material';
+import {resetRepCount, resetSelectedWorkout} from '../store/workoutSlice';
+import {requestCameraPermissions, setSelectedDeviceId, updateAvailableDevices} from '../store/cameraSlice';
 import KeypointDrawer from '../components/KeypointsDrawer';
-import { useNavigate } from 'react-router-dom';
-import { setupPoseDetection } from '../config/PoseDetectionTensorflow';
+import {useNavigate} from 'react-router-dom';
+import {setupPoseDetection} from '../config/PoseDetectionTensorflow';
 import DeadliftTracker from '../workoutsTrackers/DeadliftTracker';
 import SitUpTracker from "../workoutsTrackers/SitUpTracker";
 import PushUpsTracker from "../workoutsTrackers/PushupsTracker";
@@ -26,6 +26,7 @@ const Detector = () => {
 
   // console.log(useSelector((state)=>state.camera));
   // console.log(selectedWorkoutName, selectedWorkoutID);
+  // console.log(setSelectedDeviceId);
 
   // Local state for pose detection and rep counting
   const [poseDetector, setPoseDetector] = useState(null);
@@ -116,10 +117,10 @@ const Detector = () => {
     }
   }, [keypoints, isPoseDetectionActive, selectedWorkoutName, reps, setReps, phase, setPhase]);
 
-  // Memoize handleDeviceChange to prevent unnecessary recreations
-  const handleDeviceChange = useCallback(async () => {
-    dispatch(updateAvailableDevices()); // Use the thunk to update devices
-  }, [dispatch]);
+  // // Memoize handleDeviceChange to prevent unnecessary recreations
+  // const handleDeviceChange = useCallback(async () => {
+  //   dispatch(updateAvailableDevices()); // Use the thunk to update devices
+  // }, [dispatch]);
 
   // Initialize camera on mount
   useEffect(() => {
@@ -130,11 +131,15 @@ const Detector = () => {
 
   // Handle device changes
   useEffect(() => {
-    navigator.mediaDevices.addEventListener('devicechange', handleDeviceChange);
-    return () => {
-      navigator.mediaDevices.removeEventListener('devicechange', handleDeviceChange);
+    navigator.mediaDevices.ondevicechange = () => {
+      dispatch(updateAvailableDevices());
     };
-  }, [handleDeviceChange]); // Add handleDeviceChange as a dependency
+
+    return () => {
+      navigator.mediaDevices.ondevicechange = null;
+    };
+  }, [dispatch]);
+
 
   // Handle camera switch
   const handleCameraSwitch = async (event) => {

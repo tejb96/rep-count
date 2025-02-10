@@ -19,6 +19,10 @@ const CameraFeed = ({ webcamRef, selectedDeviceId, aspectRatio, setAspectRatio }
                 const video = webcamRef.current.video;
                 setAspectRatio(video.videoWidth / video.videoHeight);
             }}
+            audio={false}
+            playsInline
+            autoPlay
+            muted
         />
     );
 };

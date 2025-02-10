@@ -9,30 +9,39 @@ const serializeDeviceInfo = (device) => ({
 });
 
 export const requestCameraPermissions = createAsyncThunk(
-  'camera/requestPermissions',
-  async () => {
-    try {
-      // Request camera permissions and get initial stream
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      
-      // Clean up the stream after getting permissions
-      stream.getTracks().forEach(track => track.stop());
-      
-      // Get list of available devices
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoInputs = devices
-        .filter(({ kind }) => kind === 'videoinput')
-        .map(serializeDeviceInfo);
-      
-      return {
-        status: 'granted',
-        devices: videoInputs
-      };
-    } catch (error) {
-      throw new Error('Camera permission denied');
+    'camera/requestPermissions',
+    async () => {
+      try {
+        const permissionStatus = await navigator.permissions.query({ name: 'camera' });
+
+        // Request permissions if not already granted
+        if (permissionStatus.state !== 'granted') {
+          await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "user" },
+            audio: false
+          });
+        }
+
+        // Get list of available video input devices
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        console.log(devices);
+        const videoInputs = devices
+            .filter(({ kind }) => kind === 'videoinput')
+            .map(serializeDeviceInfo);
+
+        console.log(videoInputs);
+
+        return {
+          status: 'granted',
+          devices: videoInputs,
+          selectedDeviceId: videoInputs.length > 0 ? videoInputs[0].deviceId : null
+        };
+      } catch (error) {
+        throw new Error('Camera permission denied');
+      }
     }
-  }
 );
+
 
 export const updateAvailableDevices = createAsyncThunk(
   'camera/updateDevices',
@@ -80,9 +89,7 @@ const cameraSlice = createSlice({
         state.isLoading = false;
         state.permissionStatus = action.payload.status;
         state.devices = action.payload.devices;
-        if (action.payload.devices.length > 0 && !state.selectedDeviceId) {
-          state.selectedDeviceId = action.payload.devices[0].deviceId;
-        }
+        state.selectedDeviceId = action.payload.selectedDeviceId;
       })
       .addCase(requestCameraPermissions.rejected, (state, action) => {
         state.isLoading = false;

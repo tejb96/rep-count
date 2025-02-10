@@ -13,7 +13,7 @@ const initialState = {
 export const logInUserWithOauth = createAsyncThunk('auth/logInUserWithOauth', async (_, { rejectWithValue }) => {
     try {
         // Fetch the authenticated user's data after successful login
-        console.log('logInUserWithOauth');
+        // console.log('logInUserWithOauth');
         const response = await axios.get('/api/users/me');
         return { me: response.data };
     } catch (err) {

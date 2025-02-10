@@ -1,6 +1,7 @@
 const SitUpTracker = (keypoints, reps, setReps, phase, setPhase, lastPose, setLastPose) => {
   const CONFIDENCE_THRESHOLD = 0.5;
-  const VELOCITY_THRESHOLD = 0.0; // Adjust based on your needs
+  const VELOCITY_THRESHOLD = 0.0;
+  const VELOCITY_TOLERANCE = 10;
 
   console.log("SitUpTracker called");
 
@@ -84,7 +85,7 @@ const SitUpTracker = (keypoints, reps, setReps, phase, setPhase, lastPose, setLa
         (isLeftSideVisible && leftRatio < 0.5) || // Left side is in up position
         (isRightSideVisible && rightRatio < 0.5) // Right side is in up position
     ) {
-      if (velocity < VELOCITY_THRESHOLD) {
+      if (velocity >= VELOCITY_THRESHOLD - VELOCITY_TOLERANCE && velocity <= VELOCITY_THRESHOLD + VELOCITY_TOLERANCE) {
         setPhase('up');
       }
     }
@@ -93,7 +94,7 @@ const SitUpTracker = (keypoints, reps, setReps, phase, setPhase, lastPose, setLa
         (isLeftSideVisible && leftRatio > 0.6) || // Left side is in down position
         (isRightSideVisible && rightRatio > 0.6) // Right side is in down position
     ) {
-      if (velocity > VELOCITY_THRESHOLD) {
+      if (velocity >= VELOCITY_THRESHOLD - VELOCITY_TOLERANCE && velocity <= VELOCITY_THRESHOLD + VELOCITY_TOLERANCE) {
         setPhase('down');
         setReps((prevReps) => prevReps + 1);
       }

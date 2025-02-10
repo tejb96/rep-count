@@ -9,7 +9,6 @@ import {setupPoseDetection} from '../config/PoseDetectionTensorflow';
 import DeadliftTracker from '../workoutsTrackers/DeadliftTracker';
 import SitUpTracker from "../workoutsTrackers/SitUpTracker";
 import PushUpsTracker from "../workoutsTrackers/PushupsTracker";
-import CustomLayout from "../components/customLayout";
 import CameraFeed from "../components/CameraFeed";
 import SaveWorkoutData from '../components/SaveWorkoutData';
 
@@ -36,7 +35,6 @@ const Detector = () => {
   const [keypoints, setKeypoints] = useState([]); // Local state for keypoints
   const [reps, setReps] = useState(0); // Local state for rep count
   const [phase, setPhase] = useState(''); // Local state for workout phase
-  const [aspectRatio, setAspectRatio] = useState(4 / 3);
   const [shouldSaveWorkout, setShouldSaveWorkout] = useState(false);
   const [lastPose, setLastPose] = useState([]);
 
@@ -73,12 +71,12 @@ const Detector = () => {
 
 
   // Resume pose detection
-  const resumeDetection = useCallback(async () => {
-    if (!isInitialized.current) {
-      await initializePoseDetection();
-    }
-    setIsPoseDetectionActive(true);
-  }, [initializePoseDetection]);
+  // const resumeDetection = useCallback(async () => {
+  //   if (!isInitialized.current) {
+  //     await initializePoseDetection();
+  //   }
+  //   setIsPoseDetectionActive(true);
+  // }, [initializePoseDetection]);
 
   // Cleanup pose detection
   const cleanup = useCallback(() => {
@@ -128,6 +126,7 @@ const Detector = () => {
       dispatch(requestCameraPermissions());
     }
   }, [dispatch, permissionStatus]);
+
 
   // Handle device changes
   useEffect(() => {
@@ -243,6 +242,7 @@ const Detector = () => {
 
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
+        console.log("canvas", canvas.width, canvas.height);
 
         try {
           const poses = await poseDetector.estimatePoses(video);
@@ -332,25 +332,24 @@ const Detector = () => {
   }
 
   return (
-      <CustomLayout>
+      <Box>
         {devices.length > 0 ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
               <Box
                   sx={{
                     position: 'relative',
-                    width: '100%',
-                    maxWidth: '1000px',
-                    height: { xs: '480px', sm: '600px', md: '720px' },
+                    width: '100vw', // Full width of the viewport
+                    height: '100vh', // Maintain aspect ratio
+                    maxHeight: '100vh', // Ensure it doesn't exceed the viewport height
                     margin: '0 auto',
-                    aspectRatio: aspectRatio, // Use dynamic aspect ratio
                   }}
               >
-                {/* Camera Feed */}
+
+              {/* Camera Feed */}
                 <CameraFeed
                     webcamRef={webcamRef}
                     selectedDeviceId={selectedDeviceId}
-                    aspectRatio={aspectRatio}
-                    setAspectRatio={setAspectRatio}
+
                 />
 
                 {/* Pose Detection Canvas */}
@@ -481,7 +480,7 @@ const Detector = () => {
                 onSaveComplete={() => setShouldSaveWorkout(false)}
             />
         )}
-      </CustomLayout>
+      </Box>
   );
 };
 

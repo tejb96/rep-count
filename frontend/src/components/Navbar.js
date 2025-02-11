@@ -1,7 +1,7 @@
 // Updated code for Navbar.js
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import {Link, useLocation, useNavigate} from 'react-router-dom';
 import {
     AppBar,
     Toolbar,
@@ -10,7 +10,7 @@ import {
     IconButton,
     createTheme,
     ThemeProvider,
-    Box,
+    Box, Paper,
 } from '@mui/material';
 import { logOutUser } from '../store/authSlice';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -22,6 +22,7 @@ const Navbar = ({ children }) => {
     // console.log(auth.me.avatar, "navbar line 22");
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
     // console.log(auth);
     const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
 
@@ -66,6 +67,12 @@ const Navbar = ({ children }) => {
         dispatch(logOutUser({ navigate }));
     };
 
+    console.log(location);
+    if(location.pathname === '/detector'){
+        return(
+            {children}
+        )
+    }
     return (
         <ThemeProvider theme={theme === 'light' ? lightTheme : darkTheme}>
             <CssBaseline />

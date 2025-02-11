@@ -38,6 +38,7 @@ const Detector = () => {
   const [shouldSaveWorkout, setShouldSaveWorkout] = useState(false);
   const [lastPose, setLastPose] = useState([]);
 
+
   // Refs
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);

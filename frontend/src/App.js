@@ -7,6 +7,7 @@ import HomePage from "./pages/Home";
 import Login from "./pages/Login";
 import {useDispatch} from "react-redux";
 import {logInUserWithOauth} from "./store/authSlice";
+import SaveApp from "./pages/SaveApp";
 
 
 
@@ -26,6 +27,7 @@ function App() {
           <Route path="/detector" element={<Detector />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/downloadApp" element={<SaveApp />} ></Route>
         </Routes>
       </Navbar>
     </Router>

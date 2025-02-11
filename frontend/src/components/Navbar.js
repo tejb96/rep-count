@@ -10,7 +10,7 @@ import {
     IconButton,
     createTheme,
     ThemeProvider,
-    Box, Paper,
+    Box,
 } from '@mui/material';
 import { logOutUser } from '../store/authSlice';
 import CssBaseline from '@mui/material/CssBaseline';

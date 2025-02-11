@@ -73,6 +73,24 @@ const HomePage = () => {
                 </Typography>
             )}
 
+            <Typography variant="h6" component="p" sx={{ mt: 2, color: 'text.secondary' }}>
+               Like the app? Install it using Google Chrome:
+                <MuiLink
+                    component={RouterLink}
+                    to="/downloadApp"
+                    sx={{
+                        color: 'primary.main',
+                        textDecoration: 'underline',
+                        '&:hover': {
+                            color: 'secondary.main',
+                            textDecoration: 'none',
+                        },
+                    }}
+                >
+                    Download App
+                </MuiLink>
+            </Typography>
+
             <Typography variant="body2" component="p" sx={{ mt: 4, color: 'text.secondary', textAlign: 'center' }}>
                 **Disclaimer**: RepVision is intended for informational and educational purposes only. Always consult with a qualified healthcare professional before starting any new exercise program. By using this app, you acknowledge that you are participating in physical activities at your own risk. The developers of RepVision are not responsible for any injuries or damages that may occur as a result of using this app.
             </Typography>

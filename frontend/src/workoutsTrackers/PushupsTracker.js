@@ -17,9 +17,9 @@ const PushUpsTracker = (keypoints, reps, setReps, phase, setPhase, lastPose, set
   const rightShoulder = getKeypoint('right_shoulder');
   const leftWrist = getKeypoint('left_wrist');
   const rightWrist = getKeypoint('right_wrist');
-  const leftEar=getKeypoint('left_ear');
-  const rightEar=getKeypoint('right_ear');
-  const nose=getKeypoint('nose');
+  const leftEar = getKeypoint('left_ear');
+  const rightEar = getKeypoint('right_ear');
+  const nose = getKeypoint('nose');
 
   console.log(leftShoulder, rightShoulder, leftWrist, rightWrist);
 
@@ -33,7 +33,7 @@ const PushUpsTracker = (keypoints, reps, setReps, phase, setPhase, lastPose, set
   }
 
   // Calculate ratios for visible sides
-  let leftRatio, rightRatio,deltaRight,deltaLeft;
+  let leftRatio, rightRatio;
   if (isLeftSideVisible) {
     leftRatio = leftShoulder.y / leftWrist.y;
     console.log(`Left Ratio: ${leftRatio}`);
@@ -43,150 +43,62 @@ const PushUpsTracker = (keypoints, reps, setReps, phase, setPhase, lastPose, set
     console.log(`Right Ratio: ${rightRatio}`);
   }
 
-  // if (isLeftSideVisible && lastPose) {
-  //   deltaLeft = lastPose.leftShoulder.y - leftShoulder.y;
-  //   console.log(`Left Distance: ${deltaLeft}`);
-  // }
-  // if (isRightSideVisible && lastPose) {
-  //   deltaRight = lastPose.rightShoulder.y - rightShoulder.y;
-  //   console.log(`Right Distance: ${deltaRight}`);
-  // }
+  const updatePhaseAndReps = (newPhase, incrementReps = false) => {
+    setPhase(newPhase);
+    if (incrementReps) {
+      setReps((prevReps) => prevReps + 1);
+    }
+    setLastPose({
+      leftShoulder: leftShoulder,
+      rightShoulder: rightShoulder,
+      leftWrist: leftWrist,
+      rightWrist: rightWrist,
+    });
+  };
+
+  const checkTransitionToUp = () => {
+    return (
+        (isLeftSideVisible && leftRatio < 0.5) ||
+        (isRightSideVisible && rightRatio < 0.5) ||
+        (leftEar?.y && lastPose?.leftWrist?.y && leftEar.y / lastPose.leftWrist.y < 0.35) ||
+        (rightEar?.y && lastPose?.rightWrist?.y && rightEar.y / lastPose.rightWrist.y < 0.35) ||
+        (nose?.y && lastPose?.leftWrist?.y && nose.y / lastPose.leftWrist.y < 0.4) ||
+        (leftShoulder?.y && lastPose?.leftWrist?.y && leftShoulder.y / lastPose.leftWrist.y < 0.5) ||
+        (rightShoulder?.y && lastPose?.rightWrist?.y && rightShoulder.y / lastPose.rightWrist.y < 0.5)
+    );
+  };
+
+  const checkTransitionToDown = () => {
+    return (
+        (isLeftSideVisible && leftRatio > 0.8) ||
+        (isRightSideVisible && rightRatio > 0.8) ||
+        (leftEar?.y && lastPose?.leftWrist?.y && leftEar.y / lastPose.leftWrist.y > 0.8) ||
+        (rightEar?.y && lastPose?.rightWrist?.y && rightEar.y / lastPose.rightWrist.y > 0.8) ||
+        (nose?.y && lastPose?.leftWrist?.y && nose.y / lastPose.leftWrist.y > 0.8) ||
+        (leftShoulder?.y && lastPose?.leftWrist?.y && leftShoulder.y / lastPose.leftWrist.y > 0.8) ||
+        (rightShoulder?.y && lastPose?.rightWrist?.y && rightShoulder.y / lastPose.rightWrist.y > 0.8)
+    );
+  };
 
   if (phase === "Not visible" || phase === '') {
     if (
-        ((isLeftSideVisible && leftRatio > 0.7) ||
-        (isRightSideVisible && rightRatio > 0.7))
+        (isLeftSideVisible && leftRatio > 0.7) ||
+        (isRightSideVisible && rightRatio > 0.7)
     ) {
-      setPhase('down');
+      updatePhaseAndReps('down');
     }
     if (
-        ((isLeftSideVisible && leftRatio < 0.6) ||
-        (isRightSideVisible && rightRatio < 0.6))
+        (isLeftSideVisible && leftRatio < 0.6) ||
+        (isRightSideVisible && rightRatio < 0.6)
     ) {
-      setPhase('up');
+      updatePhaseAndReps('up');
     }
   }
 
-  // Determine the phase based on the ratios
-  if (phase === 'down') {
-    if (
-        (isLeftSideVisible && leftRatio < 0.6) || // Left side is in up position
-        (isRightSideVisible && rightRatio < 0.6) // Right side is in up position
-    ) {
-      setPhase('up');
-      setLastPose({
-        leftShoulder: leftShoulder,
-        rightShoulder: rightShoulder,
-        leftWrist: leftWrist,
-        rightWrist: rightWrist,
-      });
-    }
-    else if (leftEar.y && lastPose.leftWrist.y && leftEar.y/lastPose.leftWrist.y<0.5) {
-      setPhase('up');
-      setLastPose({
-        leftShoulder: leftShoulder,
-        rightShoulder: rightShoulder,
-        leftWrist: leftWrist,
-        rightWrist: rightWrist,
-      });
-    }
-    else if (rightEar.y && lastPose.rightWrist.y && rightEar.y/lastPose.rightWrist.y<0.5) {
-      setPhase('up');
-      setLastPose({
-        leftShoulder: leftShoulder,
-        rightShoulder: rightShoulder,
-        leftWrist: leftWrist,
-        rightWrist: rightWrist,
-      });
-    }
-    else if (nose.y && lastPose.leftWrist.y && nose.y/lastPose.leftWrist.y<0.5) {
-      setPhase('up');
-      setLastPose({
-        leftShoulder: leftShoulder,
-        rightShoulder: rightShoulder,
-        leftWrist: leftWrist,
-        rightWrist: rightWrist,
-      });
-    }
-    else if (leftShoulder.y && lastPose.leftWrist.y && leftShoulder.y/lastPose.leftWrist.y<0.5) {
-      setPhase('up');
-      setLastPose({
-        leftShoulder: leftShoulder,
-        rightShoulder: rightShoulder,
-        leftWrist: leftWrist,
-        rightWrist: rightWrist,
-      });
-    }
-
-    else if (rightShoulder.y && lastPose.rightWrist.y && rightShoulder.y/lastPose.rightWrist.y<0.5) {
-      setPhase('up');
-      setLastPose({
-        leftShoulder: leftShoulder,
-        rightShoulder: rightShoulder,
-        leftWrist: leftWrist,
-        rightWrist: rightWrist,
-      });
-    }
-
-  } else if (phase === 'up') {
-    if (
-        (isLeftSideVisible && leftRatio > 0.7) || // Left side is in down position
-        (isRightSideVisible && rightRatio > 0.7) // Right side is in down position
-    ) {
-      setPhase('down');
-      setReps((prevReps) => prevReps + 1);
-      setLastPose({
-        leftShoulder: leftShoulder,
-        rightShoulder: rightShoulder,
-        leftWrist: leftWrist,
-        rightWrist: rightWrist,
-      });
-    } else if (leftEar.y && lastPose.leftWrist.y && leftEar.y / lastPose.leftWrist.y > 0.6) {
-      setPhase('down');
-      setReps((prevReps) => prevReps + 1);
-      setLastPose({
-        leftShoulder: leftShoulder,
-        rightShoulder: rightShoulder,
-        leftWrist: leftWrist,
-        rightWrist: rightWrist,
-      });
-    } else if (rightEar.y && lastPose.rightWrist.y && rightEar.y / lastPose.rightWrist.y < 0.6) {
-      setPhase('down');
-      setReps((prevReps) => prevReps + 1);
-      setLastPose({
-        leftShoulder: leftShoulder,
-        rightShoulder: rightShoulder,
-        leftWrist: leftWrist,
-        rightWrist: rightWrist,
-      });
-    } else if (nose.y && lastPose.leftWrist.y && nose.y / lastPose.leftWrist.y < 0.6) {
-      setPhase('down');
-      setReps((prevReps) => prevReps + 1);
-      setLastPose({
-        leftShoulder: leftShoulder,
-        rightShoulder: rightShoulder,
-        leftWrist: leftWrist,
-        rightWrist: rightWrist,
-      });
-    } else if (leftShoulder.y && lastPose.leftWrist.y && leftShoulder.y / lastPose.leftWrist.y < 0.6) {
-      setPhase('down');
-      setReps((prevReps) => prevReps + 1);
-      setLastPose({
-        leftShoulder: leftShoulder,
-        rightShoulder: rightShoulder,
-        leftWrist: leftWrist,
-        rightWrist: rightWrist,
-      });
-    } else if (rightShoulder.y && lastPose.rightWrist.y && rightShoulder.y / lastPose.rightWrist.y < 0.6) {
-      setPhase('down');
-      setReps((prevReps) => prevReps + 1);
-      setLastPose({
-        leftShoulder: leftShoulder,
-        rightShoulder: rightShoulder,
-        leftWrist: leftWrist,
-        rightWrist: rightWrist,
-      });
-    }
+  if (phase === 'down' && checkTransitionToUp()) {
+    updatePhaseAndReps('up');
+  } else if (phase === 'up' && checkTransitionToDown()) {
+    updatePhaseAndReps('down', true);
   }
 };
 

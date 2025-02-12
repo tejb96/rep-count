@@ -37,7 +37,7 @@ const Detector = () => {
   const [phase, setPhase] = useState(''); // Local state for workout phase
   const [shouldSaveWorkout, setShouldSaveWorkout] = useState(false);
   const [lastPose, setLastPose] = useState([]);
-
+  const [countdown, setCountdown] = useState(10);
 
   // Refs
   const webcamRef = useRef(null);

@@ -74,7 +74,7 @@ const HomePage = () => {
             )}
 
             <Typography variant="h6" component="p" sx={{ mt: 2, color: 'text.secondary' }}>
-               Like the app? Install it using Google Chrome:
+               Like the app? Install it using Google Chrome:{" "}
                 <MuiLink
                     component={RouterLink}
                     to="/downloadApp"

@@ -11,6 +11,7 @@ import SitUpTracker from "../workoutsTrackers/SitUpTracker";
 import PushUpsTracker from "../workoutsTrackers/PushupsTracker";
 import CameraFeed from "../components/CameraFeed";
 import SaveWorkoutData from '../components/SaveWorkoutData';
+import CircularCountdownTimer from "../components/CircularCountdownTimer";
 
 
 
@@ -73,15 +74,6 @@ const Detector = () => {
     }
   }, [poseDetector]);
 
-
-  // Resume pose detection
-  // const resumeDetection = useCallback(async () => {
-  //   if (!isInitialized.current) {
-  //     await initializePoseDetection();
-  //   }
-  //   setIsPoseDetectionActive(true);
-  // }, [initializePoseDetection]);
-
   // Cleanup pose detection
   const cleanup = useCallback(() => {
     if (poseDetector) {
@@ -119,11 +111,6 @@ const Detector = () => {
         return;
     }
   }, [keypoints, isPoseDetectionActive, selectedWorkoutName, reps, setReps, phase, setPhase]);
-
-  // // Memoize handleDeviceChange to prevent unnecessary recreations
-  // const handleDeviceChange = useCallback(async () => {
-  //   dispatch(updateAvailableDevices()); // Use the thunk to update devices
-  // }, [dispatch]);
 
   // Initialize camera on mount
   useEffect(() => {
@@ -390,29 +377,10 @@ const Detector = () => {
                 />
 
                 {/* Countdown Overlay */}
-                {start && greaterThanZero ?
+                {start && greaterThanZero &&
                     (
-                        <Box
-                            sx={{
-                              position: 'absolute',
-                              top: '50%', // Center vertically
-                              left: '50%', // Center horizontally
-                              transform: 'translate(-50%, -50%)', // Adjust to center the element
-                              padding: '10px 20px',
-                              borderRadius: '20px',
-                              backgroundColor: 'rgba(0,0,0,0.7)',
-                              color: 'white',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              zIndex: 3,
-                              fontSize: '2rem', // Larger font size for visibility
-                              fontWeight: 'bold',
-                            }}
-                        >
-                          {countdown > 0 && `Starting in: ${countdown}s`}
-                        </Box>
-                    ):null}
+                        <CircularCountdownTimer countdown={countdown} />
+                    )}
 
                 {/* Controls Overlay */}
                 <Box

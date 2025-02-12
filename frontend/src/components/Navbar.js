@@ -67,7 +67,6 @@ const Navbar = ({ children }) => {
         dispatch(logOutUser({ navigate }));
     };
 
-    console.log(location);
     if(location.pathname === '/detector'){
         return children; // Return children directly
     }

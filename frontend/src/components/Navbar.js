@@ -69,10 +69,9 @@ const Navbar = ({ children }) => {
 
     console.log(location);
     if(location.pathname === '/detector'){
-        return(
-            {children}
-        )
+        return children; // Return children directly
     }
+
     return (
         <ThemeProvider theme={theme === 'light' ? lightTheme : darkTheme}>
             <CssBaseline />

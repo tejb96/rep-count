@@ -13,6 +13,7 @@ import CameraFeed from "../components/CameraFeed";
 import SaveWorkoutData from '../components/SaveWorkoutData';
 
 
+
 const Detector = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -37,7 +38,9 @@ const Detector = () => {
   const [phase, setPhase] = useState(''); // Local state for workout phase
   const [shouldSaveWorkout, setShouldSaveWorkout] = useState(false);
   const [lastPose, setLastPose] = useState([]);
-  const [countdown, setCountdown] = useState(10);
+  const [countdown, setCountdown] = useState(-1);
+  const [start, setStart] = useState(false);
+  const [greaterThanZero, setGreaterThanZero] = useState(true);
 
   // Refs
   const webcamRef = useRef(null);
@@ -88,6 +91,7 @@ const Detector = () => {
       setKeypoints([]); // Clear keypoints on cleanup
       setError(null);
       isInitialized.current = false;
+      setCountdown(-1);
     }
   }, [poseDetector]);
 
@@ -188,12 +192,13 @@ const Detector = () => {
           return;
         }
 
-        // Initialize and start pose detection
-        await initializePoseDetection();
-        setIsPoseDetectionActive(true);
+        // Start the countdown
+        setStart(true);
+        setCountdown(10); // Reset countdown to 10 seconds
       } else {
         // Stop pose detection
         setIsPoseDetectionActive(false);
+        setStart(false);
         if (detectionRef.current) {
           cancelAnimationFrame(detectionRef.current);
           detectionRef.current = null;
@@ -211,6 +216,23 @@ const Detector = () => {
       cleanup();
     }
   };
+
+  //countdown useEffect
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000); // Decrement countdown every second
+
+      return () => clearTimeout(timer); // Cleanup on unmount or countdown change
+    } else if (countdown === 0 && !isPoseDetectionActive) {
+      setGreaterThanZero(false);
+      // Start pose detection when countdown reaches 0
+      initializePoseDetection().then(() => {
+        setIsPoseDetectionActive(true);
+      });
+    }
+  }, [countdown, isPoseDetectionActive, initializePoseDetection]);
 
   // Reselect workout
   const reselectWorkout = () => {
@@ -262,6 +284,7 @@ const Detector = () => {
         } catch (error) {
           console.error('Error during pose detection:', error);
           setIsPoseDetectionActive(false);
+          cleanup();
         }
       }
     };
@@ -365,6 +388,31 @@ const Detector = () => {
                       zIndex: 2,
                     }}
                 />
+
+                {/* Countdown Overlay */}
+                {start && greaterThanZero ?
+                    (
+                        <Box
+                            sx={{
+                              position: 'absolute',
+                              top: '50%', // Center vertically
+                              left: '50%', // Center horizontally
+                              transform: 'translate(-50%, -50%)', // Adjust to center the element
+                              padding: '10px 20px',
+                              borderRadius: '20px',
+                              backgroundColor: 'rgba(0,0,0,0.7)',
+                              color: 'white',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              zIndex: 3,
+                              fontSize: '2rem', // Larger font size for visibility
+                              fontWeight: 'bold',
+                            }}
+                        >
+                          {countdown > 0 && `Starting in: ${countdown}s`}
+                        </Box>
+                    ):null}
 
                 {/* Controls Overlay */}
                 <Box

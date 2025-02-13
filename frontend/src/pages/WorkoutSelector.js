@@ -10,7 +10,6 @@ import {
   CardActionArea,
   CircularProgress
 } from '@mui/material';
-import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import { useNavigate } from 'react-router-dom';
 
 const WorkoutSelector = () => {
@@ -24,12 +23,12 @@ const WorkoutSelector = () => {
     {
       id: 'PushUps',
       name: 'Push Ups',
-      description: 'Count the number of push ups',
+      instructions: 'Position the camera directly in front of you at wrist level, ensuring it captures your head and upper body as you perform the push-ups. This angle will provide a clear view of your form and technique.'
     },
     {
       id: 'SitUps',
       name: 'Sit Ups',
-      description: 'Count sit ups',
+      instructions: 'Place the camera at the foot end of your exercise mat, elevated slightly above ground level. This angle will allow for a clear view of your movements as you perform the sit-ups, ensuring proper alignment and technique.'
     },
   ];
 
@@ -115,7 +114,7 @@ const WorkoutSelector = () => {
                       {workout.name}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {workout.description}
+                      {workout.instructions}
                     </Typography>
                   </Box>
                 </CardContent>

@@ -70,8 +70,8 @@ const PushUpsTracker = (keypoints, reps, setReps, phase, setPhase, lastPose, set
 
   const checkTransitionToDown = () => {
     return (
-        (isLeftSideVisible && leftRatio > 0.8) ||
-        (isRightSideVisible && rightRatio > 0.8) ||
+        (isLeftSideVisible && leftRatio > 0.7) ||
+        (isRightSideVisible && rightRatio > 0.7) ||
         (leftEar?.y && lastPose?.leftWrist?.y && leftEar.y / lastPose.leftWrist.y > 0.8) ||
         (rightEar?.y && lastPose?.rightWrist?.y && rightEar.y / lastPose.rightWrist.y > 0.8) ||
         (nose?.y && lastPose?.leftWrist?.y && nose.y / lastPose.leftWrist.y > 0.8) ||

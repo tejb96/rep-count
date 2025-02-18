@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const axiosInstance = axios.create({
     // baseURL: process.env.REACT_APP_BACKEND_URL,
-    baseURL: 'http://localhost:8080',
+    baseURL: process.env.REACT_APP_SERVER_URL,
     withCredentials: true, // Send cookies with requests
 });
 

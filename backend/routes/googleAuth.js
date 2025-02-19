@@ -23,7 +23,7 @@ router.get(
 // Google callback route
 router.get(
     '/google/callback',
-    passport.authenticate('google', { failureRedirect: '/', session: false }),
+    passport.authenticate('google', { failureRedirect: '/auth/google', session: false }),
     async (req, res) => {
         try {
             const email = req.user.emails[0].value; // Get email from the profile

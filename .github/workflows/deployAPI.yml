@@ -26,6 +26,8 @@ jobs:
           docker push ghcr.io/${{ github.repository }}/backend:latest
 
       - name: Trigger Render Deployment
+        env:
+          deploy_url: ${{secrets.RENDER_DEPLOY_HOOK}}
         run: |
-          curl -X POST "$RENDER_DEPLOY_HOOK"
+          curl "$deploy_url"
 

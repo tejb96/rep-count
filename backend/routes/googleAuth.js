@@ -49,8 +49,8 @@ router.get(
             // Set the token in an HTTP-only cookie
             res.cookie('x-auth-token', token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV==='PRODUCTION', // Secure cookie in production
-                sameSite: 'strict',
+                secure: true, // Secure cookie in production
+                sameSite: 'none',
                 maxAge: 1 * 24 * 60 * 60 * 1000, // 7 days
             });
 

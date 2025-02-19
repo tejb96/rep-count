@@ -51,7 +51,7 @@ router.get(
                 httpOnly: true,
                 secure: true, // Secure cookie in production
                 sameSite: 'none',
-                maxAge: 1 * 24 * 60 * 60 * 1000, // 7 days
+                maxAge: 1 * 24 * 60 * 60 * 1000,
             });
 
             // Redirect the user to the client application

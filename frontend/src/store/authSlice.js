@@ -14,7 +14,9 @@ export const logInUserWithOauth = createAsyncThunk('auth/logInUserWithOauth', as
     try {
         // Fetch the authenticated user's data after successful login
         // console.log('logInUserWithOauth');
-        const response = await axios.get('/api/users/me');
+        const response = await axios.get('/api/users/me', {
+            withCredentials: true,
+        });
         return { me: response.data };
     } catch (err) {
         return rejectWithValue(err.response?.data?.message || 'Failed to log in');

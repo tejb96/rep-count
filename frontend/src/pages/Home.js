@@ -10,21 +10,21 @@ const HomePage = () => {
 
     return (
         <CustomLayout>
-            <Typography
-                variant="h3"
-                component="h1"
-                gutterBottom
-                sx={{
-                    fontWeight: 'bold',
-                    color: '#0077BE',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
-            >
-                {/*<img src="/logo.jpg" alt="Logo" style={{ height: '100px', marginRight: '10px' }} />*/}
-                Welcome to RepVision
-            </Typography>
+            {/*<Typography*/}
+            {/*    variant="h3"*/}
+            {/*    component="h1"*/}
+            {/*    gutterBottom*/}
+            {/*    sx={{*/}
+            {/*        fontWeight: 'bold',*/}
+            {/*        color: 'text.secondary',*/}
+            {/*        display: 'flex',*/}
+            {/*        alignItems: 'center',*/}
+            {/*        justifyContent: 'center',*/}
+            {/*    }}*/}
+            {/*>*/}
+            {/*    /!*<img src="/logo.jpg" alt="Logo" style={{ height: '100px', marginRight: '10px' }} />*!/*/}
+            {/*    Welcome to RepVision*/}
+            {/*</Typography>*/}
             <Typography variant="h6" component="p" sx={{ mt: 2, color: 'text.secondary' }}>
                 RepVision serves as your ultimate workout companion, utilizing advanced technology to monitor your movements through your camera. This feature assists in perfecting your form and accurately counting your repetitions.
             </Typography>

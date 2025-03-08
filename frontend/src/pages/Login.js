@@ -37,8 +37,8 @@ const Login = () => {
                         startIcon={<GoogleIcon />}
                         href={GOOGLE_AUTH_LINK}
                         sx={{
-                            backgroundColor: '#0077BE',
-                            '&:hover': { backgroundColor: '#357ae8' },
+                            backgroundColor: 'primary',
+                            '&:hover': { backgroundColor: 'secondary' },
                             fontSize: '16px',
                             padding: '12px 24px',
                             textTransform: 'none',

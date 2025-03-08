@@ -1,70 +1,143 @@
-# Getting Started with Create React App
+# RepVision 
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![Rep Count Logo](./frontend/public/logo.jpg)
 
-## Available Scripts
+A full-stack MERN (MongoDB, Express.js, React, Node.js) application for tracking exercise repetitions and workout progress.
 
-In the project directory, you can run:
+## Table of Contents
 
-### `npm start`
+- [Features](#features)
+- [Technologies](#technologies)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
+- [License](#license)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Features
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- User authentication and registration
+- Real-time rep counting
+- Workout history tracking
+- Progress statistics
+- Responsive design for mobile and desktop
 
-### `npm test`
+## Technologies
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **Frontend:**
+  - React.js
+  - Redux 
+  - CSS/SCSS
+- **Backend:**
+  - Node.js
+  - Express.js
+  - MongoDB with Mongoose
+- **Authentication:**
+  - Passport.js
+  - Google OAuth 2.0
+  - JWT (JSON Web Tokens)
+- **Additional Tools:**
+  - RESTful API architecture
 
-### `npm run build`
+## Installation
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Prerequisites
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- Node.js (v14.x or higher)
+- MongoDB (local or Atlas)
+- npm or yarn
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Setup
 
-### `npm run eject`
+1. Clone the repository:
+```bash
+git clone https://github.com/tejb96/rep-count.git
+cd rep-count
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+2. Install dependencies:
+```bash
+# For backend
+cd backend
+npm install
+```
+```bash
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+# For frontend
+cd ../frontend
+npm install
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+3. Configure environment variables:
+Create a `.env` file in the `backend` directory with:
+```bash
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret_key
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Create a `.env.development` file in the `frontend` directory with:
+```bash
+REACT_APP_SERVER_URL=localhost:5000
+```
+5. Start the application:
+```bash
+# Start backend (from backend directory)
+npm run start
+```
+```bash
+# Start frontend (from frontend directory in new terminal)
+npm start
+```
 
-## Learn More
+## Usage
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+1. Register a new account or login with existing credentials
+2. Start a workout session
+3. Track your reps in real-time
+4. View your workout history and statistics
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Project Structure
+```
+rep-count/
+├── frontend/              # React frontend
+│   ├── public/         # Static assets
+│   ├── src/           # React source code
+│   │   ├── components/ # Reusable components
+|   |   ├── config/     # Configuration for tensorflow and axios
+|   |   ├── constants/  # Frequently used variables
+│   │   ├── pages/     # Page components
+│   │   ├── store/     # Redux state management
+|   |   └── workoutTrackers/ # Workout tracking logic
+│   └── package.json
+├── backend/             # Express backend
+│   ├── middleware/    # Authentication and request processing
+│   ├── mongodb/       # Database models and connection
+│   ├── oauth/         # Passport.js and Google OAuth setup
+│   ├── routes/        # RESTful API routes
+│   ├── utils/         # Helper functions and utilities
+│   └── package.json
+└── README.md
+```
 
-### Code Splitting
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Contributing
 
-### Analyzing the Bundle Size
+1. Fork the repository
+2. Create your feature branch:
+```bash
+git checkout -b feature/AmazingFeature
+```
+3. Commit your changes:
+```bash
+git commit -m 'Add some AmazingFeature'
+```
+4. Push to the branch:
+```bash
+git push origin feature/AmazingFeature
+```
+5. Open a pull request
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## License
 
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

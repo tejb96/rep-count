@@ -37,10 +37,10 @@ const Navbar = ({ children }) => {
                 contrastText: '#1A202C',
             },
             secondary: {
-                main: '#2A6F97',
-                light: '#5397C2',
-                dark: '#1D4E6A',
-                contrastText: '#F7F9FB',
+                main: '#A8A29E',
+                light: '#E7E5E4',
+                dark: '#78716C',
+                contrastText: '#3D3D3D',
             },
             background: {
                 default: '#F5F6F5',
@@ -82,10 +82,10 @@ const Navbar = ({ children }) => {
                 contrastText: '#0F172A',
             },
             secondary: {
-                main: '#64A6BD',
-                light: '#8FC8D9',
-                dark: '#457B91',
-                contrastText: '#0F172A',
+                main: '#6B7280',
+                light: '#9CA3AF',
+                dark: '#4B5563',
+                contrastText: '#1F2937',
             },
             background: {
                 default: '#0F172A',

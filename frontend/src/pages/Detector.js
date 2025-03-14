@@ -110,6 +110,7 @@ const Detector = () => {
       default:
         return;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keypoints, isPoseDetectionActive, selectedWorkoutName, reps, setReps, phase, setPhase]);
 
   // Initialize camera on mount
@@ -295,6 +296,7 @@ const Detector = () => {
         detectionRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPoseDetectionActive, poseDetector, updateKeypoints]);
 
   // Cleanup on unmount
@@ -413,7 +415,7 @@ const Detector = () => {
                           color: 'white',
                           '.MuiSelect-icon': { color: 'white' },
                         }}
-                    >
+                     variant="outlined">
                       {devices.map((device) => (
                           <MenuItem key={device.deviceId} value={device.deviceId}>
                             {device.label || `Camera ${device.deviceId.slice(0, 5)}`}

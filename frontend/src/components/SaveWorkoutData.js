@@ -1,9 +1,8 @@
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import axios from 'axios';
 
 const SaveWorkoutData = ({ workoutID, reps, onSaveComplete }) => {
-    const dispatch = useDispatch();
     const { isAuthenticated, me } = useSelector((state) => state.auth);
 
     useEffect(() => {

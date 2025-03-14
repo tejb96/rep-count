@@ -37,13 +37,13 @@ const Navbar = ({ children }) => {
                 contrastText: '#1A202C',
             },
             secondary: {
-                main: '#A8A29E',
-                light: '#E7E5E4',
-                dark: '#78716C',
-                contrastText: '#3D3D3D',
+                main: '#0F172A',      // The default color you provided
+                light: '#364866',     // Lighter shade of #0F172A
+                dark: '#070D15',      // Darker shade of #0F172A
+                contrastText: '#FFFFFF' // White for contrast against the dark main color
             },
             background: {
-                default: '#F5F6F5',
+                default: '#F5F5F5',
                 paper: '#FFFFFF',
             },
             text: {

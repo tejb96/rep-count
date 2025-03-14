@@ -1,0 +1,59 @@
+name: Frontend Deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Configure AWS credentials with IAM Role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{secrets.AWS_REGION}}
+
+      - name: Sync files to S3 and capture changed files
+        id: sync
+        run: |
+          # Sync and output changed files to a temp file
+          aws s3 sync ./frontend/build/ s3://${{ secrets.S3_BUCKET_NAME }} --delete > sync_output.txt
+          
+          # Extract uploaded file paths (strip 'upload: ' prefix and S3 URI)
+          grep "upload:" sync_output.txt | sed 's/upload: .* to s3:\/\/${{ secrets.S3_BUCKET_NAME }}\//\/\//' > changed_files.txt
+          
+          # Set output for next step
+          echo "changed_files=$(cat changed_files.txt | tr '\n' ' ')" >> $GITHUB_OUTPUT
+
+      - name: Invalidate CloudFront Cache for changed files
+        if: steps.sync.outputs.changed_files != ''
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths ${{ steps.sync.outputs.changed_files }}
+        env:
+          AWS_MAX_ATTEMPTS: 3

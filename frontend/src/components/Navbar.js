@@ -196,9 +196,6 @@ const Navbar = ({ children }) => {
                                 </Button>
                             )}
 
-                            {/*<Button color="inherit" component={Link} to="/" sx={{ mx: 1 }}>*/}
-                            {/*    Home*/}
-                            {/*</Button>*/}
                             {auth.isAuthenticated ? (
                                 <>
                                     <Button color="inherit" component={Link} to="/records" sx={{ mx: 1 }}>

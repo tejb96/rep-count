@@ -9,8 +9,9 @@ import {
     IconButton,
     createTheme,
     ThemeProvider,
-    Box,
+    Box, MenuItem, Menu,
 } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
 import { logOutUser } from '../store/authSlice';
 import CssBaseline from '@mui/material/CssBaseline';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
@@ -22,6 +23,9 @@ const Navbar = ({ children }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+    const [anchorNav, setAnchorNav] = useState(null);
+    const openNav=Boolean(anchorNav);
+
 
     useEffect(() => {
         localStorage.setItem('theme', theme);
@@ -126,6 +130,14 @@ const Navbar = ({ children }) => {
         dispatch(logOutUser({ navigate }));
     };
 
+    const handleMenuOpen=(event)=>{
+        setAnchorNav(event.target);
+    };
+
+    const handleMenuClose=()=>{
+        setAnchorNav(null);
+    }
+
     const getPageTitle = () => {
         switch (location.pathname) {
             case '/': return 'RepVision';
@@ -157,9 +169,9 @@ const Navbar = ({ children }) => {
                         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
                     }}
                 >
-                    <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} disableGutters>
+                    <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
                         {/* Logo on the left */}
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Box sx={{ display:{xs:'none',md:'flex'}, alignItems: 'center' }}>
                             <img
                                 src="/logo.jpg"
                                 alt="Logo"
@@ -179,13 +191,15 @@ const Navbar = ({ children }) => {
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
                                 whiteSpace: 'nowrap',
+                                display:{xs:'none',md:'flex'},
+                                justifyContent: 'center',
                             }}
                         >
                             {getPageTitle()}
                         </Typography>
 
                         {/* Buttons on the right */}
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Box sx={{display:{xs:'none',md:'flex'}, alignItems: 'center' }}>
                             {location.pathname ==="/" ? (
                                 <Button color="inherit" component={Link} to="/workouts" sx={{ mx: 1 }}>
                                     Workouts
@@ -231,6 +245,65 @@ const Navbar = ({ children }) => {
                                 {theme === 'light' ? <Brightness7Icon /> : <Brightness4Icon />}
                             </IconButton>
                         </Box>
+
+                        {/* hamburger menu*/}
+                        <Box sx={{display:{xs: 'flex', md:'none'}}}>
+                            <IconButton size='large' edge='start' color='inherit' onClick={handleMenuOpen}>
+                                <MenuIcon/>
+                            </IconButton>
+                            <Menu
+                                anchorNav={anchorNav}
+                                open={openNav}
+                                onClose={handleMenuClose}
+                                anchorOrigin={{
+                                    vertical: 'top',
+                                    horizontal: 'left',
+                                }}
+                            >
+                                {location.pathname === "/" ? (
+                                    <MenuItem onClick={handleMenuClose} component={Link} to="/workouts">
+                                        Workouts
+                                    </MenuItem>
+                                ) : (
+                                    <MenuItem onClick={handleMenuClose} component={Link} to="/">
+                                        Home
+                                    </MenuItem>
+                                )}
+                                {auth.isAuthenticated ? (
+                                    <>
+                                        <MenuItem onClick={handleMenuClose} component={Link} to="/records">
+                                            Records
+                                        </MenuItem>
+                                        <MenuItem onClick={handleMenuClose} component={Link} to={`/${auth.me.username}`}>
+                                            Profile
+                                        </MenuItem>
+                                        {auth.me?.role === 'ADMIN' && (
+                                            <MenuItem onClick={handleMenuClose} component={Link} to="/admin">
+                                                Admin
+                                            </MenuItem>
+                                        )}
+                                        <MenuItem onClick={(e) => { handleMenuClose(); onLogOut(e); }}>
+                                            Log out
+                                        </MenuItem>
+                                    </>
+                                ) : (
+                                    <MenuItem onClick={handleMenuClose} component={Link} to="/login">
+                                        Login
+                                    </MenuItem>
+                                )}
+                                <MenuItem onClick={() => { handleToggleTheme(); }}>
+                                    {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+                                </MenuItem>
+                            </Menu>
+                        </Box>
+                        <Box sx={{ display:{xs:'flex',md:'none'}, alignItems: 'center' }}>
+                            <img
+                                src="/logo.jpg"
+                                alt="Logo"
+                                style={{ height: '60px', marginRight: '10px', borderRadius: '8px' }}
+                            />
+                        </Box>
+
                     </Toolbar>
                 </AppBar>
                 <Box mt={3} px={2}>{children}</Box>

@@ -11,6 +11,7 @@ import {
     ThemeProvider,
     Box,
 } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
 import { logOutUser } from '../store/authSlice';
 import CssBaseline from '@mui/material/CssBaseline';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
@@ -157,9 +158,9 @@ const Navbar = ({ children }) => {
                         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
                     }}
                 >
-                    <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} disableGutters>
+                    <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
                         {/* Logo on the left */}
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Box sx={{ display:{xs:'none',md:'flex'}, alignItems: 'center' }}>
                             <img
                                 src="/logo.jpg"
                                 alt="Logo"
@@ -179,13 +180,15 @@ const Navbar = ({ children }) => {
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
                                 whiteSpace: 'nowrap',
+                                display:{xs:'none',md:'flex'},
+                                justifyContent: 'center',
                             }}
                         >
                             {getPageTitle()}
                         </Typography>
 
                         {/* Buttons on the right */}
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Box sx={{display:{xs:'none',md:'flex'}, alignItems: 'center' }}>
                             {location.pathname ==="/" ? (
                                 <Button color="inherit" component={Link} to="/workouts" sx={{ mx: 1 }}>
                                     Workouts
@@ -231,6 +234,21 @@ const Navbar = ({ children }) => {
                                 {theme === 'light' ? <Brightness7Icon /> : <Brightness4Icon />}
                             </IconButton>
                         </Box>
+
+                        {/* hamburger menu*/}
+                        <Box sx={{display:{xs: 'flex', md:'none'}}}>
+                            <IconButton size='large' edge='start' color='inherit'>
+                                <MenuIcon/>
+                            </IconButton>
+                        </Box>
+                        <Box sx={{ display:{xs:'flex',md:'none'}, alignItems: 'center' }}>
+                            <img
+                                src="/logo.jpg"
+                                alt="Logo"
+                                style={{ height: '60px', marginRight: '10px', borderRadius: '8px' }}
+                            />
+                        </Box>
+
                     </Toolbar>
                 </AppBar>
                 <Box mt={3} px={2}>{children}</Box>

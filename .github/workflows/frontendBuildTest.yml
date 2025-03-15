@@ -18,11 +18,26 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18' 
+          node-version: '18'
+
+      - name: cache node.js modules
+        uses: actions/cache@v4
+        id: cache-npm
+        with:
+          path: ./frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Install frontend dependencies
         working-directory: ./frontend
-        run: npm install
+        run: npm ci
+        if: steps.cache-npm.outputs.cache-hit !='true'
+
+      - name: Install frontend dependencies (with cache hit)
+        working-directory: ./frontend
+        run: npm install --prefer-offline --no-audit
+        if: steps.cache-npm.outputs.cache-hit == 'true'
 
       - name: Build frontend
         working-directory: ./frontend

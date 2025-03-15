@@ -65,7 +65,7 @@ jobs:
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
-            --paths "/index.html" "/asset-manifest.json" "/static/*" 
+            --paths "/*" 
         env:
           AWS_MAX_ATTEMPTS: 3
 

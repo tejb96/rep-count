@@ -51,20 +51,21 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
-          mask-aws-account-id: true
+          
 
       - name: Sync src-only files to S3
         id: s3-src-only
         run: |
-          aws s3 cp ./frontend/build/index.html s3://${{ secrets.S3_BUCKET_NAME }}/index.html > /dev/null 2>&1
-          aws s3 sync ./frontend/build/static/ s3://${{ secrets.S3_BUCKET_NAME }}/static/ --delete > /dev/null 2>&1
+          aws s3 cp ./frontend/build/index.html s3://${{ secrets.S3_BUCKET_NAME }}/index.html
+          aws s3 cp ./frontend/build/asset-manifest.json s3://${{ secrets.S3_BUCKET_NAME }}/asset-manifest.json
+          aws s3 sync ./frontend/build/static/ s3://${{ secrets.S3_BUCKET_NAME }}/static/ --delete
 
       - name: Invalidate src-only CloudFront Cache
         id: invalidate-src-only
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
-            --paths "/index.html" "/static/*" > /dev/null 2>&1
+            --paths "/index.html" "/asset-manifest.json" "/static/*" 
         env:
           AWS_MAX_ATTEMPTS: 3
 

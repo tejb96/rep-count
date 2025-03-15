@@ -20,9 +20,6 @@ const Login = () => {
     return (
         <CustomLayout>
             <Container maxWidth="sm" sx={{ textAlign: 'center', mt: 8 }}>
-                {/*<Typography variant="h4" gutterBottom>*/}
-                {/*    Log in or Sign up to Get Started*/}
-                {/*</Typography>*/}
                 <Box>
                     <img src="/logo.jpg" alt="Logo" style={{ height: '200px', marginRight: '10px' }} />
                 </Box>

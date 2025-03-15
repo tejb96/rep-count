@@ -2,7 +2,6 @@ import React from 'react';
 import { Container, Paper, Box } from '@mui/material';
 
 function CustomLayout({ children, ...props }) {
-    // testing deployFrontend.yml workflow
     return (
         <Container maxWidth="md" sx={{ my: 4 }}>
             <Paper elevation={4} sx={{ borderRadius: 3, overflow: 'hidden', ...props.sx }}>

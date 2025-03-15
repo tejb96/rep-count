@@ -52,25 +52,8 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Check changed files
-        id: changes
-        run: |
-          # Get changed files from this push
-          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
-          echo "Changed files in this push:"
-          echo "$CHANGED_FILES"
-          # Check if changes are only in frontend/src/
-          if echo "$CHANGED_FILES" | grep -v '^frontend/src/' > /dev/null; then
-            echo "Changes outside frontend/src/ detected. Will sync all."
-            echo "sync_all=true" >> $GITHUB_OUTPUT
-          else
-            echo "Changes only in frontend/src/. Will sync specific files."
-            echo "sync_all=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Sync src-only files to S3
         id: s3-src-only
-        if: steps.changes.outputs.sync_all != 'true'
         run: |
           > sync_output.txt
           # Sync index.html (replaces existing)
@@ -81,7 +64,6 @@ jobs:
 
       - name: Invalidate src-only CloudFront Cache
         id: invalidate-src-only
-        if: steps.changes.outputs.sync_all != 'true'
         run: |
           echo "Invalidating specific files: /index.html /static/*"
           aws cloudfront create-invalidation \
@@ -90,22 +72,4 @@ jobs:
         env:
           AWS_MAX_ATTEMPTS: 3
 
-      - name: Sync all files to S3
-        id: s3-all
-        if: steps.changes.outputs.sync_all == 'true'
-        run: |
-          > sync_output.txt
-          # Sync entire build folder (replaces all matching, deletes obsolete)
-          aws s3 sync ./frontend/build/ s3://${{ secrets.S3_BUCKET_NAME }}/ --delete --size-only >> sync_output.txt 2>&1
-          cat sync_output.txt
-
-      - name: Invalidate all CloudFront Cache
-        id: invalidate-all
-        if: steps.changes.outputs.sync_all == 'true'
-        run: |
-          echo "Invalidating all files: /*"
-          aws cloudfront create-invalidation \
-            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
-            --paths "/*"
-        env:
-          AWS_MAX_ATTEMPTS: 3
+#

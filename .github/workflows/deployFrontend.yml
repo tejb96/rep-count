@@ -51,24 +51,20 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
+          mask-aws-account-id: true
 
       - name: Sync src-only files to S3
         id: s3-src-only
         run: |
-          > sync_output.txt
-          # Sync index.html (replaces existing)
-          aws s3 cp ./frontend/build/index.html s3://${{ secrets.S3_BUCKET_NAME }}/index.html >> sync_output.txt 2>&1
-          # Sync static folder (replaces changed files, deletes obsolete)
-          aws s3 sync ./frontend/build/static/ s3://${{ secrets.S3_BUCKET_NAME }}/static/ --delete --size-only >> sync_output.txt 2>&1
-          cat sync_output.txt
+          aws s3 cp ./frontend/build/index.html s3://${{ secrets.S3_BUCKET_NAME }}/index.html > /dev/null 2>&1
+          aws s3 sync ./frontend/build/static/ s3://${{ secrets.S3_BUCKET_NAME }}/static/ --delete > /dev/null 2>&1
 
       - name: Invalidate src-only CloudFront Cache
         id: invalidate-src-only
         run: |
-          echo "Invalidating specific files: /index.html /static/*"
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
-            --paths "/index.html" "/static/*"
+            --paths "/index.html" "/static/*" > /dev/null 2>&1
         env:
           AWS_MAX_ATTEMPTS: 3
 

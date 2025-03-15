@@ -2,7 +2,7 @@
 
 ![Rep Count Logo](./frontend/public/logo.jpg)
 
-A full-stack MERN (MongoDB, Express.js, React, Node.js) application for tracking exercise repetitions hosted on AWS at [repvision.tsbprojects.com/](https://repvision.tsbprojects.com/)
+A full-stack MERN (MongoDB, Express.js, React, Node.js) application for tracking exercise repetitions hosted on AWS
 
 ## Table of Contents
 

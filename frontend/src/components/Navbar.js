@@ -186,9 +186,19 @@ const Navbar = ({ children }) => {
 
                         {/* Buttons on the right */}
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Button color="inherit" component={Link} to="/" sx={{ mx: 1 }}>
-                                Home
-                            </Button>
+                            {location.pathname ==="/" ? (
+                                <Button color="inherit" component={Link} to="/workouts" sx={{ mx: 1 }}>
+                                    Workouts
+                                </Button>
+                            ):(
+                                <Button color="inherit" component={Link} to="/" sx={{ mx: 1 }}>
+                                    Home
+                                </Button>
+                            )}
+
+                            {/*<Button color="inherit" component={Link} to="/" sx={{ mx: 1 }}>*/}
+                            {/*    Home*/}
+                            {/*</Button>*/}
                             {auth.isAuthenticated ? (
                                 <>
                                     <Button color="inherit" component={Link} to="/records" sx={{ mx: 1 }}>

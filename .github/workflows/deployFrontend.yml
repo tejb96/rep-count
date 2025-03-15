@@ -23,9 +23,24 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Cache Node.js modules
+        uses: actions/cache@v4
+        id: cache-npm
+        with:
+          path: ./frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install frontend dependencies
         working-directory: ./frontend
-        run: npm install
+        run: npm ci
+        if: steps.cache-npm.outputs.cache-hit !='true'
+
+      - name: Install frontend dependencies (with cache hit)
+        working-directory: ./frontend
+        run: npm install --prefer-offline --no-audit
+        if: steps.cache-npm.outputs.cache-hit == 'true'
 
       - name: Build frontend
         working-directory: ./frontend
@@ -35,25 +50,62 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{secrets.AWS_REGION}}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Sync files to S3 and capture changed files
-        id: sync
+      - name: Check changed files
+        id: changes
         run: |
-          # Sync and output changed files to a temp file
-          aws s3 sync ./frontend/build/ s3://${{ secrets.S3_BUCKET_NAME }} --delete > sync_output.txt
-          
-          # Extract uploaded file paths (strip 'upload: ' prefix and S3 URI)
-          grep "upload:" sync_output.txt | sed 's/upload: .* to s3:\/\/${{ secrets.S3_BUCKET_NAME }}\//\/\//' > changed_files.txt
-          
-          # Set output for next step
-          echo "changed_files=$(cat changed_files.txt | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          # Get changed files from this push
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+          echo "Changed files in this push:"
+          echo "$CHANGED_FILES"
+          # Check if changes are only in frontend/src/
+          if echo "$CHANGED_FILES" | grep -v '^frontend/src/' > /dev/null; then
+            echo "Changes outside frontend/src/ detected. Will sync all."
+            echo "sync_all=true" >> $GITHUB_OUTPUT
+          else
+            echo "Changes only in frontend/src/. Will sync specific files."
+            echo "sync_all=false" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Invalidate CloudFront Cache for changed files
-        if: steps.sync.outputs.changed_files != ''
+      - name: Sync src-only files to S3
+        id: s3-src-only
+        if: steps.changes.outputs.sync_all != 'true'
         run: |
+          > sync_output.txt
+          # Sync index.html (replaces existing)
+          aws s3 cp ./frontend/build/index.html s3://${{ secrets.S3_BUCKET_NAME }}/index.html >> sync_output.txt 2>&1
+          # Sync static folder (replaces changed files, deletes obsolete)
+          aws s3 sync ./frontend/build/static/ s3://${{ secrets.S3_BUCKET_NAME }}/static/ --delete --size-only >> sync_output.txt 2>&1
+          cat sync_output.txt
+
+      - name: Invalidate src-only CloudFront Cache
+        id: invalidate-src-only
+        if: steps.changes.outputs.sync_all != 'true'
+        run: |
+          echo "Invalidating specific files: /index.html /static/*"
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
-            --paths ${{ steps.sync.outputs.changed_files }}
+            --paths "/index.html /static/*"
+        env:
+          AWS_MAX_ATTEMPTS: 3
+
+      - name: Sync all files to S3
+        id: s3-all
+        if: steps.changes.outputs.sync_all == 'true'
+        run: |
+          > sync_output.txt
+          # Sync entire build folder (replaces all matching, deletes obsolete)
+          aws s3 sync ./frontend/build/ s3://${{ secrets.S3_BUCKET_NAME }}/ --delete --size-only >> sync_output.txt 2>&1
+          cat sync_output.txt
+
+      - name: Invalidate all CloudFront Cache
+        id: invalidate-all
+        if: steps.changes.outputs.sync_all == 'true'
+        run: |
+          echo "Invalidating all files: /*"
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
         env:
           AWS_MAX_ATTEMPTS: 3

@@ -35,7 +35,7 @@ jobs:
       - name: Install frontend dependencies
         working-directory: ./frontend
         run: npm ci
-        if: steps.cache-npm.outputs.cache-hit !='true'
+        if: steps.cache-npm.outputs.cache-hit != 'true'
 
       - name: Install frontend dependencies (with cache hit)
         working-directory: ./frontend
@@ -45,13 +45,14 @@ jobs:
       - name: Build frontend
         working-directory: ./frontend
         run: npm run build
+        env:
+          REACT_APP_SERVER_URL: ${{ secrets.REACT_APP_SERVER_URL }}
 
       - name: Configure AWS credentials with IAM Role
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
-          
 
       - name: Sync src-only files to S3
         id: s3-src-only
@@ -65,8 +66,6 @@ jobs:
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
-            --paths "/*" 
+            --paths "/*"
         env:
           AWS_MAX_ATTEMPTS: 3
-
-#

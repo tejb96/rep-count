@@ -1,25 +1,46 @@
-import passport from 'passport';
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import passport from "passport";
+import User from "../models/User.js";
 
-console.log("passportjs",process.env.NODE_ENV);
-// Server URL based on environment
-const serverUrl = process.env.NODE_ENV === 'production' ? process.env.SERVER_URL_PROD : process.env.SERVER_URL_DEV;
-
-// Google strategy
 const googleLogin = new GoogleStrategy(
-    {
-        clientID: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: `${serverUrl}${process.env.GOOGLE_CALLBACK_URL}`,
-        proxy: true,
-    },
-    async (accessToken, refreshToken, profile, done) => {
-        // Pass the profile to the done callback without processing it here
-        return done(null, profile);
-    },
-);
+            {
+                clientID: process.env.GOOGLE_CLIENT_ID,
+                clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+                callbackURL: "/auth/google/callback",
+            },
+            async (accessToken, refreshToken, profile, done) => {
+                try {
+                    let user = await User.findOne({ googleId: profile.id });
+                    if (!user) {
+                        user = new User({
+                            googleId: profile.id,
+                            email: profile.emails[0].value,
+                            name: profile.displayName,
+                        });
+                        await user.save();
+                    }
+                    return done(null, user); // Store user in session
+                } catch (err) {
+                    return done(err, null);
+                }
+            }
 
-// Register the Google strategy with Passport
+
+    );
+
 passport.use(googleLogin);
+
+
+    // Serialize/deserialize user for session
+    passport.serializeUser((user, done) => done(null, user.id));
+    passport.deserializeUser(async (id, done) => {
+        try {
+            const user = await User.findById(id);
+            done(null, user);
+        } catch (err) {
+            done(err, null);
+        }
+    });
+
 
 export default passport;

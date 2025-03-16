@@ -1,5 +1,5 @@
 import express from 'express';
-import Repetition from '../../mongodb/models/Repitions.js'; // Adjust path if your models folder is different
+import Repetition from '../../models/Repitions.js'; // Adjust path if your models folder is different
 
 
 const router = express.Router();

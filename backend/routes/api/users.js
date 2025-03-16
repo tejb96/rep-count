@@ -54,48 +54,48 @@ userRoutes.get('/:id', auth, async (req, res) => {
     }
 });
 
-// Update user by ID
-userRoutes.put('/:id', auth, async (req, res) => {
-    try {
-        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-            return res.status(400).json({ success: false, message: 'Invalid user ID' });
-        }
+// // Update user by ID
+// userRoutes.put('/:id', auth, async (req, res) => {
+//     try {
+//         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+//             return res.status(400).json({ success: false, message: 'Invalid user ID' });
+//         }
+//
+//         if (req.user.id !== req.params.id) {
+//             return res.status(403).json({ success: false, message: 'You do not have privileges to update this user' });
+//         }
+//
+//         const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+//         if (!updatedUser) {
+//             return res.status(404).json({ success: false, message: 'No such user' });
+//         }
+//         res.status(200).json({ success: true, user: updatedUser.toJSON() });
+//     } catch (err) {
+//         console.error('Error in PUT /:id:', err);
+//         res.status(500).json({ success: false, message: 'Something went wrong' });
+//     }
+// });
 
-        if (req.user.id !== req.params.id) {
-            return res.status(403).json({ success: false, message: 'You do not have privileges to update this user' });
-        }
-
-        const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!updatedUser) {
-            return res.status(404).json({ success: false, message: 'No such user' });
-        }
-        res.status(200).json({ success: true, user: updatedUser.toJSON() });
-    } catch (err) {
-        console.error('Error in PUT /:id:', err);
-        res.status(500).json({ success: false, message: 'Something went wrong' });
-    }
-});
-
-// Delete user by ID
-userRoutes.delete('/:id', auth, async (req, res) => {
-    try {
-        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-            return res.status(400).json({ success: false, message: 'Invalid user ID' });
-        }
-
-        if (req.user.id !== req.params.id && req.user.role !== 'ADMIN') {
-            return res.status(403).json({ success: false, message: 'You do not have privileges to delete this user' });
-        }
-
-        const user = await User.findByIdAndDelete(req.params.id);
-        if (!user) {
-            return res.status(404).json({ success: false, message: 'No such user' });
-        }
-        res.status(200).json({ success: true, message: 'User deleted successfully' });
-    } catch (err) {
-        console.error('Error in DELETE /:id:', err);
-        res.status(500).json({ success: false, message: 'Something went wrong' });
-    }
-});
+// // Delete user by ID
+// userRoutes.delete('/:id', auth, async (req, res) => {
+//     try {
+//         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+//             return res.status(400).json({ success: false, message: 'Invalid user ID' });
+//         }
+//
+//         if (req.user.id !== req.params.id && req.user.role !== 'ADMIN') {
+//             return res.status(403).json({ success: false, message: 'You do not have privileges to delete this user' });
+//         }
+//
+//         const user = await User.findByIdAndDelete(req.params.id);
+//         if (!user) {
+//             return res.status(404).json({ success: false, message: 'No such user' });
+//         }
+//         res.status(200).json({ success: true, message: 'User deleted successfully' });
+//     } catch (err) {
+//         console.error('Error in DELETE /:id:', err);
+//         res.status(500).json({ success: false, message: 'Something went wrong' });
+//     }
+// });
 
 export default userRoutes;

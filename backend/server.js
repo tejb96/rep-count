@@ -1,44 +1,62 @@
 import express from 'express';
 import cors from 'cors';
 import * as dotenv from 'dotenv';
-import connectDB from './mongodb/connect.js';
-import './oAuth/passport.js';
+import connectDB from './models/connect.js';
 import routes from './routes/index.js';
 import cookieParser from 'cookie-parser';
+import passport from 'passport';
+import session from 'express-session';
+import csurf from 'csurf';
+import './oAuth/passport.js';
 
 dotenv.config();
 
 const app = express();
 
-//middleware
-app.use(
-    cors({
-        origin: process.env.CLIENT_URL_DEV,
-        methods: "GET,POST,PUT,DELETE",
-        credentials: true,
-    })
-);
+const corsOrigin = process.env.NODE_ENV === 'production' ? process.env.CLIENT_URL_PROD : process.env.CLIENT_URL_DEV;
 
+app.use(cors({
+    origin: corsOrigin,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'X-CSRF-Token'], // Added X-CSRF-Token
+}));
+
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'your-secret-here',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 24 * 60 * 60 * 1000,
+    },
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(cookieParser());
 
-app.use(express.json());
+// CSRF protection middleware
+const csrfProtection = csurf({ cookie: true });
+app.use(csrfProtection);
 
-// Base route
-app.get('/', (req, res) => {
-    res.send({ message: 'App running' });
+// Expose CSRF token endpoint
+app.get('/api/csrf-token', (req, res) => {
+    res.json({ csrfToken: req.csrfToken() });
 });
 
-// Use the centralized router
+app.use(express.json());
+app.get('/', (req, res) => res.send({ message: 'App running' }));
 app.use(routes);
 
 const port = process.env.PORT || 8080;
 
 const startServer = async () => {
     try {
-        connectDB(process.env.MONGODB_URL);
-        app.listen(port, () => {
-            console.log('Listening on port ' + port);
-        });
+        await connectDB(process.env.MONGODB_URL);
+        app.listen(port, () => console.log('Listening on port ' + port));
     } catch (error) {
         console.error(error);
     }

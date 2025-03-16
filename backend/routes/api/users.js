@@ -1,65 +1,101 @@
 import { Router } from 'express';
-import requireJwtAuth from '../../middleware/requireJwtAuth.js';
-import User from '../../mongodb/models/User.js';
+import auth from '../../middleware/auth.js'; // Session-based middleware
+import User from '../../models/User.js';
+import mongoose from 'mongoose'; // For ObjectId validation
+import rateLimit from 'express-rate-limit'; // Added for rate limiting
 
 const userRoutes = Router();
 
+// Rate limiting: 100 requests per IP per 15 minutes
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 25, // 100 requests per IP
+    message: { success: false, message: 'Too many requests, please try again later' },
+    standardHeaders: true, // Return rate limit info in headers (RateLimit-*)
+    legacyHeaders: false, // Disable X-RateLimit-* headers
+});
+
+// Apply rate limiting to all routes
+userRoutes.use(limiter);
+
 // Get current user information (me)
-userRoutes.get('/me', requireJwtAuth, async (req, res) => {
+userRoutes.get('/me', auth, async (req, res) => {
     try {
-        const user = await User.findById(req.user.id);  // Using req.user.id
-        if (!user) return res.status(404).json({ message: 'No user found.' });
-        res.json({ user: user.toJSON() });
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'No user found' });
+        }
+        res.json({ success: true, user: user.toJSON() });
     } catch (err) {
-        res.status(500).json({ message: 'Something went wrong.' });
+        console.error('Error in /me:', err);
+        res.status(500).json({ success: false, message: 'Something went wrong' });
     }
 });
 
-// Get user by ID (use req.user.id instead of params.id)
-userRoutes.get('/:id', requireJwtAuth, async (req, res) => {
+// Get user by ID
+userRoutes.get('/:id', auth, async (req, res) => {
     try {
-        if (req.user.id !== req.params.id) {  // Ensure the requester matches the user being fetched
-            return res.status(403).json({ message: 'You do not have privileges to access this user.' });
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ success: false, message: 'Invalid user ID' });
         }
 
-        const user = await User.findById(req.params.id);  // Find user by ID
-        if (!user) return res.status(404).json({ message: 'No user found.' });
-        res.json({ user: user.toJSON() });
-    } catch (err) {
-        res.status(500).json({ message: 'Something went wrong.' });
-    }
-});
-
-// Update user by ID (use req.user.id)
-userRoutes.put('/:id', requireJwtAuth, async (req, res) => {
-    try {
-        if (req.user.id !== req.params.id) {  // Ensure requester matches the user being updated
-            return res.status(403).json({ message: 'You do not have privileges to update this user.' });
+        if (req.user.id !== req.params.id) {
+            return res.status(403).json({ success: false, message: 'You do not have privileges to access this user' });
         }
 
-        const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!updatedUser) return res.status(404).json({ message: 'No such user.' });
-
-        res.status(200).json({ user: updatedUser.toJSON() });
-    } catch (err) {
-        res.status(500).json({ message: 'Something went wrong.' });
-    }
-});
-
-// Delete user by ID (use req.user.id)
-userRoutes.delete('/:id', requireJwtAuth, async (req, res) => {
-    try {
-        if (req.user.id !== req.params.id && req.user.role !== 'ADMIN') {  // Ensure requester has permissions to delete
-            return res.status(403).json({ message: 'You do not have privileges to delete this user.' });
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'No user found' });
         }
-
-        const user = await User.findByIdAndRemove(req.params.id);
-        if (!user) return res.status(404).json({ message: 'No such user.' });
-
-        res.status(200).json({ message: 'User deleted successfully' });
+        res.json({ success: true, user: user.toJSON() });
     } catch (err) {
-        res.status(500).json({ message: 'Something went wrong.' });
+        console.error('Error in GET /:id:', err);
+        res.status(500).json({ success: false, message: 'Something went wrong' });
     }
 });
+
+// // Update user by ID
+// userRoutes.put('/:id', auth, async (req, res) => {
+//     try {
+//         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+//             return res.status(400).json({ success: false, message: 'Invalid user ID' });
+//         }
+//
+//         if (req.user.id !== req.params.id) {
+//             return res.status(403).json({ success: false, message: 'You do not have privileges to update this user' });
+//         }
+//
+//         const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+//         if (!updatedUser) {
+//             return res.status(404).json({ success: false, message: 'No such user' });
+//         }
+//         res.status(200).json({ success: true, user: updatedUser.toJSON() });
+//     } catch (err) {
+//         console.error('Error in PUT /:id:', err);
+//         res.status(500).json({ success: false, message: 'Something went wrong' });
+//     }
+// });
+
+// // Delete user by ID
+// userRoutes.delete('/:id', auth, async (req, res) => {
+//     try {
+//         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+//             return res.status(400).json({ success: false, message: 'Invalid user ID' });
+//         }
+//
+//         if (req.user.id !== req.params.id && req.user.role !== 'ADMIN') {
+//             return res.status(403).json({ success: false, message: 'You do not have privileges to delete this user' });
+//         }
+//
+//         const user = await User.findByIdAndDelete(req.params.id);
+//         if (!user) {
+//             return res.status(404).json({ success: false, message: 'No such user' });
+//         }
+//         res.status(200).json({ success: true, message: 'User deleted successfully' });
+//     } catch (err) {
+//         console.error('Error in DELETE /:id:', err);
+//         res.status(500).json({ success: false, message: 'Something went wrong' });
+//     }
+// });
 
 export default userRoutes;

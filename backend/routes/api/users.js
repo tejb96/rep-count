@@ -2,23 +2,27 @@ import { Router } from 'express';
 import auth from '../../middleware/auth.js'; // Session-based middleware
 import User from '../../models/User.js';
 import mongoose from 'mongoose'; // For ObjectId validation
-import rateLimit from 'express-rate-limit'; // Added for rate limiting
+import rateLimit from 'express-rate-limit'; // For rate limiting
+// import csurf from 'csurf'; // For CSRF protection
 
 const userRoutes = Router();
 
 // Rate limiting: 100 requests per IP per 15 minutes
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 25, // 100 requests per IP
+    max: 25,
     message: { success: false, message: 'Too many requests, please try again later' },
-    standardHeaders: true, // Return rate limit info in headers (RateLimit-*)
-    legacyHeaders: false, // Disable X-RateLimit-* headers
+    standardHeaders: true,
+    legacyHeaders: false,
 });
+
+// CSRF protection (cookie-based, matches express-session)
+// const csrfProtection = csurf({ cookie: true });
 
 // Apply rate limiting to all routes
 userRoutes.use(limiter);
 
-// Get current user information (me)
+// Get current user information (me) - No CSRF needed (read-only)
 userRoutes.get('/me', auth, async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
@@ -54,8 +58,8 @@ userRoutes.get('/:id', auth, async (req, res) => {
     }
 });
 
-// // Update user by ID
-// userRoutes.put('/:id', auth, async (req, res) => {
+// // Update user by ID - CSRF protection added
+// userRoutes.put('/:id', auth, csrfProtection, async (req, res) => {
 //     try {
 //         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
 //             return res.status(400).json({ success: false, message: 'Invalid user ID' });
@@ -75,9 +79,9 @@ userRoutes.get('/:id', auth, async (req, res) => {
 //         res.status(500).json({ success: false, message: 'Something went wrong' });
 //     }
 // });
-
-// // Delete user by ID
-// userRoutes.delete('/:id', auth, async (req, res) => {
+//
+// // Delete user by ID - CSRF protection added
+// userRoutes.delete('/:id', auth, csrfProtection, async (req, res) => {
 //     try {
 //         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
 //             return res.status(400).json({ success: false, message: 'Invalid user ID' });

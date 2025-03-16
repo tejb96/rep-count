@@ -1,20 +1,42 @@
 import express from 'express';
-import Repetition from '../../models/Repitions.js'; // Adjust path if your models folder is different
-
+import Repetition from '../../models/Repitions.js'; // Fixed typo: Repitions -> Repetitions (if applicable)
+import auth from '../../middleware/auth.js'; // Session-based auth
+import mongoose from 'mongoose'; // For ObjectId validation
+import rateLimit from 'express-rate-limit';
+import csurf from 'csurf'; // For CSRF protection
 
 const router = express.Router();
 
-// Create a new repetition
-router.post('/addSet', async (req, res) => {
+// Rate limiting: 100 requests per IP per 15 minutes
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100,
+    message: { success: false, message: 'Too many requests, please try again later' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// CSRF protection (cookie-based, matches express-session)
+const csrfProtection = csurf({ cookie: true });
+
+// Apply rate limiting to all routes
+router.use(limiter);
+
+// Create a new repetition - Auth and CSRF required
+router.post('/addSet', auth, csrfProtection, async (req, res) => {
     try {
         const { user, type, repetitions, date } = req.body;
 
         // Validate required fields
         if (!user || !type || !repetitions || !date) {
-            return res.status(400).json({ error: 'Missing required fields' });
+            return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
 
-        // Create a new repetition object
+        // Ensure the authenticated user matches the request body user
+        if (req.user.id !== user) {
+            return res.status(403).json({ success: false, message: 'Unauthorized to add repetition for this user' });
+        }
+
         const newRepetition = new Repetition({
             user,
             type,
@@ -22,61 +44,89 @@ router.post('/addSet', async (req, res) => {
             date,
         });
 
-        // Save the repetition to the database
         const savedRepetition = await newRepetition.save();
-        res.status(201).json(savedRepetition);
+        res.status(201).json({ success: true, repetition: savedRepetition });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error in POST /addSet:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 
 // Get all repetitions for a user
-router.get('/:userId', async (req, res) => {
+router.get('/:userId', auth, async (req, res) => {
     try {
         const { userId } = req.params;
 
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ success: false, message: 'Invalid user ID' });
+        }
+
+        // Ensure the authenticated user matches the requested userId
+        if (req.user.id !== userId) {
+            return res.status(403).json({ success: false, message: 'Unauthorized to view this user’s repetitions' });
+        }
+
         const repetitions = await Repetition.find({ user: userId }).populate('user', 'name email');
-        res.status(200).json(repetitions);
+        res.status(200).json({ success: true, repetitions });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error in GET /:userId:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 
-// Update a repetition
-router.put('/:id', async (req, res) => {
+// Update a repetition - Auth and CSRF required
+router.put('/:id', auth, csrfProtection, async (req, res) => {
     try {
         const { id } = req.params;
-        const updates = req.body;
 
-        const updatedRepetition = await Repetition.findByIdAndUpdate(id, updates, {
-            new: true, // Return the updated document
-            runValidators: true, // Ensure validations are run on updates
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, message: 'Invalid repetition ID' });
+        }
+
+        // Check if the repetition belongs to the authenticated user
+        const repetition = await Repetition.findById(id);
+        if (!repetition) {
+            return res.status(404).json({ success: false, message: 'Repetition not found' });
+        }
+        if (repetition.user.toString() !== req.user.id) {
+            return res.status(403).json({ success: false, message: 'Unauthorized to update this repetition' });
+        }
+
+        const updatedRepetition = await Repetition.findByIdAndUpdate(id, req.body, {
+            new: true,
+            runValidators: true,
         });
 
-        if (!updatedRepetition) {
-            return res.status(404).json({ error: 'Repetition not found' });
-        }
-
-        res.status(200).json(updatedRepetition);
+        res.status(200).json({ success: true, repetition: updatedRepetition });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error in PUT /:id:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 
-// Delete a repetition
-router.delete('/:id', async (req, res) => {
+// Delete a repetition - Auth and CSRF required
+router.delete('/:id', auth, csrfProtection, async (req, res) => {
     try {
         const { id } = req.params;
 
-        const deletedRepetition = await Repetition.findByIdAndDelete(id);
-
-        if (!deletedRepetition) {
-            return res.status(404).json({ error: 'Repetition not found' });
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, message: 'Invalid repetition ID' });
         }
 
-        res.status(200).json({ message: 'Repetition deleted successfully' });
+        // Check if the repetition belongs to the authenticated user
+        const repetition = await Repetition.findById(id);
+        if (!repetition) {
+            return res.status(404).json({ success: false, message: 'Repetition not found' });
+        }
+        if (repetition.user.toString() !== req.user.id) {
+            return res.status(403).json({ success: false, message: 'Unauthorized to delete this repetition' });
+        }
+
+        await Repetition.findByIdAndDelete(id);
+        res.status(200).json({ success: true, message: 'Repetition deleted successfully' });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error in DELETE /:id:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 

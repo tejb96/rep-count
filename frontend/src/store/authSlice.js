@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from '../config/axios';
+import axiosInstance from '../config/axios';
 
 const initialState = {
     isAuthenticated: false,
@@ -14,9 +14,7 @@ export const logInUserWithOauth = createAsyncThunk('auth/logInUserWithOauth', as
     try {
         // Fetch the authenticated user's data after successful login
         // console.log('logInUserWithOauth');
-        const response = await axios.get('/api/users/me', {
-            withCredentials: true,
-        });
+        const response = await axiosInstance.get('/api/users/me');
         return { me: response.data };
     } catch (err) {
         return rejectWithValue(err.response?.data?.message || 'Failed to log in');

@@ -5,7 +5,7 @@ import passport from "passport";
 
 const options = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: process.env.JWT_SECRET || 'your-secret-key', // Use your secret key
+    secretOrKey: process.env.JWT_SECRET
 };
 
 passport.use(

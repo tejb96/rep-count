@@ -1,5 +1,5 @@
 import express from 'express';
-import Repetition from '../../models/Repitions.js';
+import Repetition from '../../models/Repetitions.js';
 import auth from '../../middleware/auth.js';
 import mongoose from 'mongoose';
 import rateLimit from 'express-rate-limit';
@@ -66,26 +66,32 @@ router.get('/:userId', auth, async (req, res) => {
     }
 });
 
-// Update a repetition
+// Update a workout's repetitions
 router.put('/:id', auth, csrfProtection, validate(repetitionSchemas.updateRepetitionSchema), async (req, res) => {
     try {
         const { id } = req.params;
+        const { repetitions } = req.body;
 
+        // Validate ObjectId
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ success: false, message: 'Invalid repetition ID' });
         }
 
+        // Find the repetition
         const repetition = await Repetition.findById(id);
         if (!repetition) {
             return res.status(404).json({ success: false, message: 'Repetition not found' });
         }
+
+        // Check authorization
         if (repetition.user.toString() !== req.user.id) {
             return res.status(403).json({ success: false, message: 'Unauthorized to update this repetition' });
         }
 
+
         const updatedRepetition = await Repetition.findByIdAndUpdate(
             id,
-            { $set: req.body },
+            { $set: { repetitions } },
             { new: true, runValidators: true }
         );
 

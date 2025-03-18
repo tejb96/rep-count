@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import axios from 'axios';
+import axiosInstance from '../config/axios';
 
 const SaveWorkoutData = ({ workoutID, reps, onSaveComplete }) => {
     const { isAuthenticated, me } = useSelector((state) => state.auth);
@@ -11,13 +11,13 @@ const SaveWorkoutData = ({ workoutID, reps, onSaveComplete }) => {
             if (isAuthenticated && me && reps > 0) {
                 try {
                     const workoutData = {
-                        user: me._id, // Assuming the user ID is stored in me._id
+                        user: me._id,
                         type: workoutID,
                         repetitions: reps,
                         date: new Date(),
                     };
 
-                    await axios.post('/api/reps/addSet', workoutData);
+                    await axiosInstance.post('/api/reps/addSet', workoutData);
                     console.log('Workout data saved successfully');
                     if (onSaveComplete) {
                         onSaveComplete();

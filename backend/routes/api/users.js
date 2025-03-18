@@ -22,14 +22,13 @@ const limiter = rateLimit({
 // Apply rate limiting to all routes
 userRoutes.use(limiter);
 
-// Get current user information (me) - No CSRF needed (read-only)
 userRoutes.get('/me', auth, async (req, res) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user.id).select('-googleId');
         if (!user) {
             return res.status(404).json({ success: false, message: 'No user found' });
         }
-        res.json({ success: true, user: user.toJSON() });
+        res.json({ success: true, user });
     } catch (err) {
         console.error('Error in /me:', err);
         res.status(500).json({ success: false, message: 'Something went wrong' });
@@ -47,11 +46,11 @@ userRoutes.get('/:id', auth, async (req, res) => {
             return res.status(403).json({ success: false, message: 'You do not have privileges to access this user' });
         }
 
-        const user = await User.findById(req.params.id);
+        const user = await User.findById(req.params.id).select('-googleId');
         if (!user) {
             return res.status(404).json({ success: false, message: 'No user found' });
         }
-        res.json({ success: true, user: user.toJSON() });
+        res.json({ success: true, user });
     } catch (err) {
         console.error('Error in GET /:id:', err);
         res.status(500).json({ success: false, message: 'Something went wrong' });

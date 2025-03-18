@@ -26,22 +26,6 @@ const userSchema = new Schema(
 );
 
 
-// To JSON method
-userSchema.methods.toJSON = function () {
-    return {
-        id: this._id,
-
-        email: this.email,
-
-        avatar: this.avatar,
-        name: this.name,
-        role: this.role,
-
-        createdAt: this.createdAt,
-        updatedAt: this.updatedAt,
-    };
-};
-
 const User = mongoose.model('User', userSchema);
 
 export default User;

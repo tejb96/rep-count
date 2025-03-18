@@ -24,7 +24,7 @@ router.get("/google/callback",
         res.cookie('jwt', token, {
             httpOnly: true, // Prevent JS access
             secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-            sameSite: 'lax', // CSRF protection
+            sameSite: 'none', // CSRF protection
             maxAge: 60 * 60 * 1000 // 1 hour (match JWT expiration)
         });
         res.redirect(clientUrl); // Redirect to frontend success page

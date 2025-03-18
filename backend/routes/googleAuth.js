@@ -14,20 +14,26 @@ router.get(
     }),
 );
 
-router.get(
-    "/google/callback",
-    passport.authenticate("google", { failureRedirect: "/auth/google" }),
+router.get("/google/callback",
+    passport.authenticate("google", {
+        failureRedirect: "/auth/google",
+        session: false // Explicitly disable sessions
+    }),
     (req, res) => {
-        // Session is set automatically by Passport
-        res.redirect(clientUrl); // Redirect to frontend
+        const { token } = req.user; // Get token from strategy
+        res.cookie('jwt', token, {
+            httpOnly: true, // Prevent JS access
+            secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+            sameSite: 'strict', // CSRF protection
+            maxAge: 60 * 60 * 1000 // 1 hour (match JWT expiration)
+        });
+        res.redirect(`${clientUrl}/login-success`); // Redirect to frontend success page
     }
 );
 
 router.get("/logout", (req, res) => {
-    req.logout((err) => {
-        if (err) console.error("Logout error:", err);
-        res.redirect(clientUrl);
-    });
+    res.clearCookie('jwt'); // Clear the JWT cookie
+    res.redirect(clientUrl);
 });
 
 export default router;

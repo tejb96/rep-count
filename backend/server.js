@@ -5,7 +5,6 @@ import connectDB from './models/connect.js';
 import routes from './routes/index.js';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
-import session from 'express-session';
 import csurf from 'csurf';
 import './oAuth/passport.js';
 
@@ -33,20 +32,7 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'X-CSRF-Token'], // Added X-CSRF-Token
 }));
 
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'your-secret-here',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 24 * 60 * 60 * 1000,
-    },
-}));
-
 app.use(passport.initialize());
-app.use(passport.session());
 app.use(cookieParser());
 
 // CSRF protection middleware

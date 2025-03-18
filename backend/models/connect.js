@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const connectDB=(url)=>{
     mongoose.set('strictQuery', true);
     mongoose.connect(url)
-        .then(()=> console.log('models Connected!'))
+        .then(()=> console.log('mongodb Connected!'))
         .catch((error)=>console.log(error));
 }
 

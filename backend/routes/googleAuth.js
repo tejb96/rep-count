@@ -27,7 +27,7 @@ router.get("/google/callback",
             sameSite: 'strict', // CSRF protection
             maxAge: 60 * 60 * 1000 // 1 hour (match JWT expiration)
         });
-        res.redirect(`${clientUrl}/login-success`); // Redirect to frontend success page
+        res.redirect(clientUrl); // Redirect to frontend success page
     }
 );
 

@@ -1,38 +1,31 @@
 import express from 'express';
-import Repetition from '../../models/Repitions.js'; // Fixed typo: Repitions -> Repetitions (if applicable)
-import auth from '../../middleware/auth.js'; // Session-based auth
-import mongoose from 'mongoose'; // For ObjectId validation
+import Repetition from '../../models/Repetitions.js';
+import auth from '../../middleware/auth.js';
+import mongoose from 'mongoose';
 import rateLimit from 'express-rate-limit';
-import csurf from 'csurf'; // For CSRF protection
+import csurf from 'csurf';
+import repetitionSchemas  from '../../validators/repetitionValidator.js';
+import validate from "../../middleware/validate.js";
 
 const router = express.Router();
 
-// Rate limiting: 100 requests per IP per 15 minutes
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
+    windowMs: 15 * 60 * 1000,
     max: 100,
     message: { success: false, message: 'Too many requests, please try again later' },
     standardHeaders: true,
     legacyHeaders: false,
 });
 
-// CSRF protection (cookie-based, matches express-session)
 const csrfProtection = csurf({ cookie: true });
 
-// Apply rate limiting to all routes
 router.use(limiter);
 
-// Create a new repetition - Auth and CSRF required
-router.post('/addSet', auth, csrfProtection, async (req, res) => {
+// Create a new repetition
+router.post('/addSet', auth, csrfProtection, validate(repetitionSchemas.createRepetitionSchema), async (req, res) => {
     try {
         const { user, type, repetitions, date } = req.body;
 
-        // Validate required fields
-        if (!user || !type || !repetitions || !date) {
-            return res.status(400).json({ success: false, message: 'Missing required fields' });
-        }
-
-        // Ensure the authenticated user matches the request body user
         if (req.user.id !== user) {
             return res.status(403).json({ success: false, message: 'Unauthorized to add repetition for this user' });
         }
@@ -61,7 +54,6 @@ router.get('/:userId', auth, async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid user ID' });
         }
 
-        // Ensure the authenticated user matches the requested userId
         if (req.user.id !== userId) {
             return res.status(403).json({ success: false, message: 'Unauthorized to view this user’s repetitions' });
         }
@@ -74,28 +66,34 @@ router.get('/:userId', auth, async (req, res) => {
     }
 });
 
-// Update a repetition - Auth and CSRF required
-router.put('/:id', auth, csrfProtection, async (req, res) => {
+// Update a workout's repetitions
+router.put('/:id', auth, csrfProtection, validate(repetitionSchemas.updateRepetitionSchema), async (req, res) => {
     try {
         const { id } = req.params;
+        const { repetitions } = req.body;
 
+        // Validate ObjectId
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ success: false, message: 'Invalid repetition ID' });
         }
 
-        // Check if the repetition belongs to the authenticated user
+        // Find the repetition
         const repetition = await Repetition.findById(id);
         if (!repetition) {
             return res.status(404).json({ success: false, message: 'Repetition not found' });
         }
+
+        // Check authorization
         if (repetition.user.toString() !== req.user.id) {
             return res.status(403).json({ success: false, message: 'Unauthorized to update this repetition' });
         }
 
-        const updatedRepetition = await Repetition.findByIdAndUpdate(id, req.body, {
-            new: true,
-            runValidators: true,
-        });
+
+        const updatedRepetition = await Repetition.findByIdAndUpdate(
+            id,
+            { $set: { repetitions } },
+            { new: true, runValidators: true }
+        );
 
         res.status(200).json({ success: true, repetition: updatedRepetition });
     } catch (error) {
@@ -104,7 +102,7 @@ router.put('/:id', auth, csrfProtection, async (req, res) => {
     }
 });
 
-// Delete a repetition - Auth and CSRF required
+// Delete a repetition
 router.delete('/:id', auth, csrfProtection, async (req, res) => {
     try {
         const { id } = req.params;
@@ -113,7 +111,6 @@ router.delete('/:id', auth, csrfProtection, async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid repetition ID' });
         }
 
-        // Check if the repetition belongs to the authenticated user
         const repetition = await Repetition.findById(id);
         if (!repetition) {
             return res.status(404).json({ success: false, message: 'Repetition not found' });

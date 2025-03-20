@@ -20,14 +20,15 @@ router.get("/google/callback",
         session: false // Explicitly disable sessions
     }),
     (req, res) => {
-        const { token } = req.user; // Get token from strategy
+        const { token } = req.user;
         res.cookie('jwt', token, {
-            httpOnly: true, // Prevent JS access
-            secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-            sameSite: 'none', // CSRF protection
-            maxAge: 60 * 60 * 1000 // 1 hour (match JWT expiration)
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'Lax',           // Works with subdomains
+            domain: process.env.Domain, // Share across subdomains
+            maxAge: 60 * 60 * 1000,    // 1 hour
         });
-        res.redirect(clientUrl); // Redirect to frontend success page
+        res.redirect(clientUrl);
     }
 );
 

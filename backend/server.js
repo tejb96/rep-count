@@ -36,7 +36,14 @@ app.use(passport.initialize());
 app.use(cookieParser());
 
 // CSRF protection middleware
-const csrfProtection = csurf({ cookie: true });
+const csrfProtection = csurf({
+    cookie: {
+        secure: true,
+        sameSite: 'Lax',
+        domain: process.env.DOMAIN,
+        httpOnly: true
+    }
+});
 app.use(csrfProtection);
 
 // Expose CSRF token endpoint

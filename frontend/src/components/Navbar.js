@@ -218,7 +218,7 @@ const Navbar = ({ children }) => {
                                     <IconButton
                                         color="inherit"
                                         component={Link}
-                                        to={`/${auth.me.username}`}
+                                        to={`/profile`}
                                         sx={{ width: '40px', height: '40px', padding: 0, mx: 1 }}
                                     >
                                         <img
@@ -232,9 +232,9 @@ const Navbar = ({ children }) => {
                                             Admin
                                         </Button>
                                     )}
-                                    <IconButton color="inherit" onClick={onLogOut} sx={{ mx: 1 }}>
-                                        Log out
-                                    </IconButton>
+                                    <Button color="inherit" onClick={onLogOut} sx={{ mx: 1 }}>
+                                        Logout
+                                    </Button>
                                 </>
                             ) : (
                                 <Button color="inherit" component={Link} to="/login" sx={{ mx: 1 }}>
@@ -274,7 +274,7 @@ const Navbar = ({ children }) => {
                                         <MenuItem onClick={handleMenuClose} component={Link} to="/records">
                                             Records
                                         </MenuItem>
-                                        <MenuItem onClick={handleMenuClose} component={Link} to={`/${auth.me.username}`}>
+                                        <MenuItem onClick={handleMenuClose} component={Link} to={`/profile`}>
                                             Profile
                                         </MenuItem>
                                         {auth.me?.role === 'ADMIN' && (
@@ -283,7 +283,7 @@ const Navbar = ({ children }) => {
                                             </MenuItem>
                                         )}
                                         <MenuItem onClick={(e) => { handleMenuClose(); onLogOut(e); }}>
-                                            Log out
+                                            Logout
                                         </MenuItem>
                                     </>
                                 ) : (

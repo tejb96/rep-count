@@ -8,6 +8,8 @@ import Login from "./pages/Login";
 import {useDispatch} from "react-redux";
 import {logInUserWithOauth} from "./store/authSlice";
 import SaveApp from "./pages/SaveApp";
+import Profile from "./pages/Profile";
+import PrivateRoute from "./hoc/PrivateRoute";
 
 
 
@@ -28,6 +30,11 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/downloadApp" element={<SaveApp />} ></Route>
+
+          <Route element={<PrivateRoute />}>
+            <Route path="/profile" element={<Profile />} />
+          </Route>
+
         </Routes>
       </Navbar>
     </Router>

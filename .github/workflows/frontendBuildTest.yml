@@ -1,15 +1,16 @@
 name: Frontend CI
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'frontend/**'
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: ${{ github.actor == github.repository_owner }}
+
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - name: Checkout code

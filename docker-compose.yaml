@@ -1,0 +1,43 @@
+version: "2"
+
+services:
+  database:
+    image: mongo:latest
+    container_name: rep-count-database
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    env_file:
+      - ./env/mongo.env
+      
+
+  backend:
+    build: ./backend
+    container_name: rep-count-backend
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./env/backend.env
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - database      
+
+  frontend:
+    build: ./frontend
+    container_name: rep-count-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_SERVER_URL=http://localhost:8080
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - backend
+
+volumes:
+  mongo-data:
+
+

@@ -1,40 +1,55 @@
+// routes/googleAuth.js
 import { Router } from 'express';
-import passport from '../oAuth/passport.js';
+import passport from 'passport';
+import jwt from 'jsonwebtoken';
+
 const router = Router();
 
-const clientUrl =
-    process.env.NODE_ENV === 'production' ? process.env.CLIENT_URL_PROD : process.env.CLIENT_URL_DEV;
+const CLIENT_URL = process.env.NODE_ENV === 'production'
+    ? process.env.CLIENT_URL_PROD
+    : process.env.CLIENT_URL_DEV;
 
+// Start Google login
+router.get('/google', passport.authenticate('google', {
+    scope: ['profile', 'email'],
+}));
 
-// Google authentication route
-router.get(
-    '/google',
+// Google callback → set httpOnly JWT cookie
+router.get('/google/callback',
     passport.authenticate('google', {
-        scope: ['profile', 'email'], // Request email and profile scopes
-    }),
-);
-
-router.get("/google/callback",
-    passport.authenticate("google", {
-        failureRedirect: "/auth/google",
-        session: false // Explicitly disable sessions
+        failureRedirect: `${CLIENT_URL}/login?error=auth_failed`,
+        session: false,
     }),
     (req, res) => {
-        const { token } = req.user;
+        const { user } = req.user; 
+        const token = jwt.sign(
+            { id: user._id },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' } 
+        );
+
         res.cookie('jwt', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'Lax',           // Works with subdomains
-            domain: process.env.Domain, // Share across subdomains
-            maxAge: 60 * 60 * 1000,    // 1 hour
+            sameSite: 'lax',       
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            path: '/',
+            // domain: '.yoursite.com' 
         });
-        res.redirect(clientUrl);
+
+        res.redirect(`${CLIENT_URL}`); 
     }
 );
 
-router.get("/logout", (req, res) => {
-    res.clearCookie('jwt'); // Clear the JWT cookie
-    res.redirect(clientUrl);
+// Logout
+router.get('/logout', (req, res) => {
+    res.clearCookie('jwt', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+    });
+    res.redirect(`${CLIENT_URL}/login`);
 });
 
 export default router;

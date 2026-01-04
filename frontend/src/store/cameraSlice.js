@@ -12,24 +12,28 @@ export const requestCameraPermissions = createAsyncThunk(
     'camera/requestPermissions',
     async () => {
       try {
-        const permissionStatus = await navigator.permissions.query({ name: 'camera' });
+        // Directly request camera access via getUserMedia
+        // This will show the browser permission prompt if not previously denied
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            facingMode: "user",
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        });
 
-        // Request permissions if not already granted
-        if (permissionStatus.state !== 'granted') {
-          await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: "user" },
-            audio: false
-          });
-        }
+        // Stop the stream immediately after getting permission
+        stream.getTracks().forEach(track => track.stop());
 
         // Get list of available video input devices
         const devices = await navigator.mediaDevices.enumerateDevices();
-        console.log(devices);
+        console.log('Available devices:', devices);
         const videoInputs = devices
             .filter(({ kind }) => kind === 'videoinput')
             .map(serializeDeviceInfo);
 
-        console.log(videoInputs);
+        console.log('Video inputs:', videoInputs);
 
         return {
           status: 'granted',
@@ -37,7 +41,18 @@ export const requestCameraPermissions = createAsyncThunk(
           selectedDeviceId: videoInputs.length > 0 ? videoInputs[0].deviceId : null
         };
       } catch (error) {
-        throw new Error('Camera permission denied');
+        console.error('Camera permission error:', error);
+        // Distinguish between different error types
+        if (error.name === 'NotAllowedError') {
+          throw new Error('Camera permission denied by user');
+        } else if (error.name === 'NotFoundError') {
+          throw new Error('No camera device found');
+        } else if (error.name === 'NotSupportedError') {
+          throw new Error('getUserMedia not supported in this browser');
+        } else if (error.name === 'SecurityError') {
+          throw new Error('Camera access requires secure context (HTTPS)');
+        }
+        throw new Error(`Camera access failed: ${error.message}`);
       }
     }
 );

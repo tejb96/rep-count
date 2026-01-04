@@ -116,6 +116,7 @@ const Detector = () => {
   // Initialize camera on mount
   useEffect(() => {
     if (permissionStatus !== 'granted') {
+      console.log('Camera permission status:', permissionStatus);
       dispatch(requestCameraPermissions());
     }
   }, [dispatch, permissionStatus]);

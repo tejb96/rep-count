@@ -20,6 +20,15 @@ app.use(helmet({
     crossOriginEmbedderPolicy: false,
 }));
 
+// Add Permissions-Policy header to allow camera and microphone access
+app.use((req, res, next) => {
+    res.setHeader(
+        'Permissions-Policy',
+        'camera=*, microphone=*, geolocation=*, payment=*'
+    );
+    next();
+});
+
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
